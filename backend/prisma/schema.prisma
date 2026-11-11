@@ -1,0 +1,117 @@
+// Datenmodell Spesenportal
+// Fachliche Regeln (siehe DTRUML.pdf / User_Stories.pdf):
+// - Ein Spesenantrag umfasst genau einen Monat einer mitarbeitenden Person.
+// - Ein eingereichter Antrag wird von genau einer vorgesetzten Person entschieden.
+// - Entscheid: genehmigen, zurückweisen (Korrektur möglich) oder ablehnen (endgültig).
+// - Nur genehmigte Anträge werden am Monatsende mit dem Lohn ausbezahlt.
+
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+enum Rolle {
+  MITARBEITENDE
+  VORGESETZTE
+  LOHNBUCHHALTUNG
+}
+
+// Lebenszyklus eines Spesenantrags (Zustandsdiagramm)
+enum AntragStatus {
+  ERFASST
+  EINGEREICHT
+  ZURUECKGEWIESEN
+  GENEHMIGT
+  AUSBEZAHLT
+  ABGELEHNT
+}
+
+enum Kategorie {
+  FAHRT
+  VERPFLEGUNG
+  UEBERNACHTUNG
+  MATERIAL
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  personalnummer String   @unique
+  email          String   @unique
+  name           String
+  passwortHash   String
+  rolle          Rolle
+  kostenstelle   String
+  erstelltAm     DateTime @default(now())
+
+  // Teamzugehörigkeit: Mitarbeitende haben genau eine vorgesetzte Person
+  vorgesetzteId Int?
+  vorgesetzte   User?  @relation("Team", fields: [vorgesetzteId], references: [id])
+  team          User[] @relation("Team")
+
+  antraege     Spesenantrag[] @relation("AntragMitarbeitende")
+  entscheide   Spesenantrag[] @relation("AntragEntscheid")
+  auszahlungen Spesenantrag[] @relation("AntragAuszahlung")
+}
+
+model Spesenantrag {
+  id     Int          @id @default(autoincrement())
+  jahr   Int
+  monat  Int
+  status AntragStatus @default(ERFASST)
+
+  mitarbeitendeId Int
+  mitarbeitende   User @relation("AntragMitarbeitende", fields: [mitarbeitendeId], references: [id])
+
+  // Entscheid der vorgesetzten Person
+  entschiedenVonId Int?
+  entschiedenVon   User?     @relation("AntragEntscheid", fields: [entschiedenVonId], references: [id])
+  entschiedenAm    DateTime?
+  begruendung      String?   @db.Text
+
+  // Auszahlung durch die Lohnbuchhaltung
+  ausbezahltVonId Int?
+  ausbezahltVon   User?     @relation("AntragAuszahlung", fields: [ausbezahltVonId], references: [id])
+  ausbezahltAm    DateTime?
+
+  eingereichtAm DateTime?
+  erstelltAm    DateTime  @default(now())
+  geaendertAm   DateTime  @updatedAt
+
+  positionen Position[]
+
+  @@unique([mitarbeitendeId, jahr, monat])
+  @@index([status])
+}
+
+model Position {
+  id        Int       @id @default(autoincrement())
+  antragId  Int
+  antrag    Spesenantrag @relation(fields: [antragId], references: [id], onDelete: Cascade)
+  datum     DateTime  @db.Date
+  kategorie Kategorie
+  zweck     String
+  // Bei FAHRT wird der Betrag aus Kilometer × Pauschale berechnet
+  kilometer Decimal?  @db.Decimal(8, 1)
+  betrag    Decimal   @db.Decimal(10, 2)
+  erstelltAm  DateTime @default(now())
+  geaendertAm DateTime @updatedAt
+
+  beleg Beleg?
+}
+
+model Beleg {
+  id            Int      @id @default(autoincrement())
+  positionId    Int      @unique
+  position      Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  dateiname     String
+  mimeType      String
+  groesse       Int
+  // Pfad relativ zum Upload-Verzeichnis
+  pfad          String
+  hochgeladenAm DateTime @default(now())
+}
