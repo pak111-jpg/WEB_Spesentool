@@ -1,0 +1,523 @@
+/* Farben und Masse an einer Stelle (Custom Properties) */
+:root {
+  --c-marke: #1f4e79;
+  --c-marke-hell: #d6e4f2;
+  --c-grund: #f3f5f8;
+  --c-flaeche: #ffffff;
+  --c-text: #1f2933;
+  --c-text-leise: #5f6b7a;
+  --c-linie: #d6dde6;
+  --c-fehler: #a61b1b;
+  --c-fehler-grund: #fde8e8;
+  --c-warnung: #7a5a00;
+  --c-warnung-grund: #fff3cd;
+  --c-erfolg: #0f5132;
+  --c-erfolg-grund: #d1e7dd;
+  --c-auf-marke: #ffffff;
+
+  --radius: 0.5rem;
+  --abstand: 1rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+  background: var(--c-grund);
+  color: var(--c-text);
+}
+
+/* Das Attribut hidden muss gegen display: grid der Felder gewinnen */
+[hidden] {
+  display: none !important;
+}
+
+a {
+  color: var(--c-marke);
+}
+
+/* ---------- Kopfzeile ---------- */
+.kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--abstand) 2rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--c-marke);
+  color: var(--c-auf-marke);
+}
+
+.kopf a {
+  color: var(--c-auf-marke);
+}
+
+.marke {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.kopf ul {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.person .klein {
+  display: inline;
+  color: var(--c-marke-hell);
+}
+
+.kopf button.leise {
+  color: var(--c-auf-marke);
+  text-decoration: underline;
+}
+
+/* ---------- Seitenaufbau ---------- */
+.inhalt {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--abstand);
+}
+
+.inhalt[aria-busy='true'] {
+  opacity: 0.6;
+}
+
+.seite {
+  display: grid;
+  gap: var(--abstand);
+}
+
+.karte {
+  background: var(--c-flaeche);
+  border: 1px solid var(--c-linie);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.karte.schmal {
+  max-width: 26rem;
+  margin: 2rem auto;
+}
+
+h1,
+h2 {
+  margin: 0 0 0.75rem;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+.karte > h2:first-child {
+  margin-top: 0;
+}
+
+.karte-kopf,
+.titelzeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.karte-kopf h1,
+.karte-kopf h2,
+.titelzeile h1 {
+  margin: 0;
+}
+
+.karte-kopf select {
+  width: auto;
+}
+
+.fuss {
+  padding: var(--abstand);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--c-text-leise);
+}
+
+/* ---------- Fakten zum Antrag (dl) ---------- */
+/* Mobile first: schmal stehen Begriff und Wert untereinander, breit nebeneinander (siehe Media Query unten) */
+.fakten {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 1rem;
+  margin: 0.75rem 0;
+}
+
+.fakten dt {
+  margin-top: 0.4rem;
+  color: var(--c-text-leise);
+}
+
+.fakten dd {
+  margin: 0;
+}
+
+/* ---------- Formulare ---------- */
+.formular {
+  display: grid;
+  gap: 0.75rem;
+}
+
+/* Felder nebeneinander erst ab Tablet-Breite, siehe Media Query unten */
+.formular.zeile {
+  align-items: end;
+}
+
+.feld {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.feld-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+input,
+select,
+textarea,
+button,
+.knopf {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border-radius: calc(var(--radius) / 2);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--c-linie);
+  background: var(--c-flaeche);
+  color: var(--c-text);
+}
+
+input[type='checkbox'] {
+  width: auto;
+}
+
+textarea {
+  resize: vertical;
+}
+
+:focus-visible {
+  outline: 3px solid var(--c-marke-hell);
+  outline-offset: 2px;
+}
+
+/* ---------- Knöpfe ---------- */
+button,
+.knopf {
+  display: inline-block;
+  border: 1px solid var(--c-marke);
+  cursor: pointer;
+  background: var(--c-marke);
+  color: var(--c-auf-marke);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+button.sekundaer {
+  background: var(--c-flaeche);
+  color: var(--c-marke);
+}
+
+button.gefahr {
+  border-color: var(--c-fehler);
+  color: var(--c-fehler);
+}
+
+/* Unauffälliger Knopf (auch für <label> beim Datei-Upload) */
+button.leise,
+label.leise {
+  padding: 0.1rem 0.3rem;
+  white-space: nowrap;
+  border: none;
+  background: none;
+  color: var(--c-marke);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+button.leise.gefahr {
+  color: var(--c-fehler);
+}
+
+.knopfzeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* ---------- Meldungen und Hinweise ---------- */
+.meldung {
+  margin: 0.5rem 0 0;
+  min-height: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.meldung.fehler,
+.klein.fehler {
+  color: var(--c-fehler);
+}
+
+.meldung.warnung {
+  color: var(--c-warnung);
+}
+
+.meldung.erfolg {
+  color: var(--c-erfolg);
+}
+
+.hinweis {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin: 0.75rem 0;
+}
+
+.hinweis.warnung {
+  background: var(--c-warnung-grund);
+  color: var(--c-warnung);
+}
+
+.hinweis.fehler {
+  background: var(--c-fehler-grund);
+  color: var(--c-fehler);
+}
+
+.leer,
+.leise {
+  color: var(--c-text-leise);
+}
+
+.klein {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--c-text-leise);
+}
+
+/* ---------- Tabellen ---------- */
+.tabelle-rahmen {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--c-linie);
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-leise);
+}
+
+.zahl {
+  text-align: right;
+  white-space: nowrap;
+}
+
+td .aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+
+tr.problem {
+  background: var(--c-fehler-grund);
+}
+
+tr.ueberfaellig td:first-child {
+  box-shadow: inset 3px 0 0 var(--c-fehler);
+}
+
+tr.summe td {
+  font-weight: 700;
+  border-top: 2px solid var(--c-text);
+}
+
+/* ---------- Status-Marken ---------- */
+.status {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-erfasst {
+  background: #e4e7eb;
+  color: #3e4c59;
+}
+
+.status-eingereicht {
+  background: var(--c-marke-hell);
+  color: var(--c-marke);
+}
+
+.status-zurueckgewiesen {
+  background: var(--c-warnung-grund);
+  color: var(--c-warnung);
+}
+
+.status-genehmigt {
+  background: var(--c-erfolg-grund);
+  color: var(--c-erfolg);
+}
+
+.status-ausbezahlt {
+  background: #0f5132;
+  color: #ffffff;
+}
+
+.status-abgelehnt,
+.status-ueberfaellig {
+  background: var(--c-fehler-grund);
+  color: var(--c-fehler);
+}
+
+.status-ueberfaellig {
+  margin-left: 0.5rem;
+}
+
+/* ---------- Beleg-Dialog ---------- */
+.beleg-dialog {
+  border: none;
+  border-radius: var(--radius);
+  padding: 1rem;
+  max-width: 92vw;
+}
+
+.beleg-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.beleg-dialog img {
+  display: block;
+  max-width: 88vw;
+  max-height: 78vh;
+  object-fit: contain;
+}
+
+.beleg-dialog iframe {
+  width: 88vw;
+  height: 78vh;
+  border: 1px solid var(--c-linie);
+}
+
+/* Nur für Screenreader und Tastatur: das Datei-Feld bleibt fokussierbar, ist aber unsichtbar */
+.nur-screenreader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+label.leise:has(.nur-screenreader:focus-visible) {
+  outline: 3px solid var(--c-marke-hell);
+  outline-offset: 2px;
+}
+
+/* ---------- Mobile first: Ergänzungen ab 40rem (640px) Breite ---------- */
+@media (min-width: 40rem) {
+  .karte {
+    padding: 1.25rem;
+  }
+
+  .fakten {
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 1rem;
+  }
+
+  .fakten dt {
+    margin-top: 0;
+  }
+
+  .formular.zeile {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, max-content));
+  }
+}
+
+/* ---------- Demo-Zugänge auf der Anmeldeseite ---------- */
+.demo {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.demo ul {
+  margin: 0;
+  padding-left: 1rem;
+}
