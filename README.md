@@ -274,23 +274,25 @@ Abweichungen von den User Stories, dem Mockup und dem Zustandsdiagramm aus DTR I
 | MA-5 Begründung | eine Begründung pro Antrag, nicht pro Position | die vorgesetzte Person nennt die betroffene Position im Text; einfacheres Datenmodell |
 | Rollen | jede Person hat genau eine Rolle; Vorgesetzte erfassen im Portal keine eigenen Spesen | Projektumfang; eine zweite Rolle bräuchte eine eigene Freigabe-Kette |
 | Kategorie Fahrt | gerechnet wird nur mit Kilometern (Privatfahrzeug) | entspricht MA-2 (Kilometerpauschale); öffentlicher Verkehr ist nicht Teil der Spezifikation |
-| Mockup | ⚠️ *von der Gruppe mit dem DTR-II-Mockup abzugleichen* | – |
+| Mockup | In DTR II wurde **kein Mockup** erstellt, darum gibt es keine Abweichungen davon | Grundlage für die Oberfläche waren die User Stories und das Aktivitätsdiagramm ([`docs/dtr2/Spesenportal-UML.pdf`](docs/dtr2/Spesenportal-UML.pdf), Seite 3). Dessen Ablauf ist umgesetzt: Monat wählen und Spesen erfassen → Belege hochladen → absenden → Prüfung mit Fehlermeldung → Entscheid mit drei Ausgängen → Auszahlung |
+| Aktivitätsdiagramm «Antrag verworfen» | Ein abgelehnter Antrag wird nicht gelöscht, sondern bleibt im Endzustand «Abgelehnt» mit Begründung gespeichert und sichtbar | Nachvollziehbarkeit für Mitarbeitende, Vorgesetzte und Revision; der Monat bleibt belegt, damit dieselben Spesen nicht erneut eingereicht werden |
 
 ## KI-Deklaration
 
-KI-Werkzeuge wurden eingesetzt. Grundsatz: Jede Änderung wurde mit automatischen Prüfungen getestet, und
-jedes Gruppenmitglied muss den Code ohne KI erklären und anpassen können.
+Wir haben **Claude von Anthropic** (u. a. Claude Opus) für Frontend, Backend, Daten und Dokumentation eingesetzt.
+Planung und Muster (Aufbau der Module, Datenmodell, Statusmodell) haben wir vorher selbst festgelegt. Jedes
+Ergebnis haben wir **im Browser mit allen Rollen durchgespielt**, **in der Gruppe besprochen**, und **alle drei
+haben die Überarbeitung gelesen**. Zusätzlich laufen automatische Prüfungen (siehe Tabelle). Jedes
+Gruppenmitglied kann den Code ohne KI erklären und anpassen.
 
 | Bereich | Ob und wofür KI eingesetzt wurde | Wie das Ergebnis geprüft wurde |
 | ------- | -------------------------------- | ------------------------------ |
-| HTML | Überarbeitung (Claude, Anthropic): Meta-Angaben und Favicon in `index.html`, semantische Struktur der Seiten (Überschriften, Labels, `time`, `nav`) | Nu Html Checker auf allen 7 Seiten: 0 Fehler; Prüfskript für ein `main`, ein `h1`, Labels |
-| CSS | Überarbeitung (Claude): Kartenansicht für Tabellen auf schmalen Bildschirmen, sichtbarer Fokus, Fehler beim Feld, Ladeanzeige, Entfernen von `!important` | Screenshots bei 375 px und 1280 px, Messung der Seitenbreite, Lighthouse, Suche nach verbotenen Mustern |
-| JavaScript | Erstversion des Frontends (damals TypeScript): ⚠️ *Gruppe ergänzen*. Überarbeitung (Claude): Aufteilung in Module (Regeln, Validierung, Liste, Rückmeldung), Funktionen unter 40 Zeilen, Sortierung und Filter, Verlauf, Benachrichtigung; Umstellung des Frontends von TypeScript auf JavaScript (Typangaben entfernt, Datenstrukturen als JSDoc) | ESLint mit den Regeln aus dem Raster (inkl. unbekannte und unbenutzte Variablen), Prozessdurchlauf mit allen Rollen, Stichproben und Tastaturtest im Browser (Playwright), Test ohne Vite mit einfachem Webserver |
-| Daten | Überarbeitung (Claude): Tabelle `StatusAenderung` mit Migration, Demo-Daten mit 14 Anträgen und Musterbelegen | Seed prüft jeden Schritt gegen das Zustandsdiagramm; End-to-End-Test |
-| Backend | Erstversion mit KI erstellt (Commit `8b0920b`, Co-Autor Claude; Prisma-Skills für KI-Assistenten in `backend/.agents`, `.claude`, `.windsurf`). Überarbeitung (Claude): zentrale Statusregeln, atomarer Statuswechsel mit Verlauf, Sichtbarkeit nach Rolle, Tests | 28 Unit-Tests und 4 End-to-End-Tests, ESLint, `tsc` |
-| Dokumentation | README, `docs/user-stories.md` und `docs/zustandsdiagramm.md` mit KI überarbeitet, auf Grundlage unserer DTR-II-Dokumente | gegen Bewertungsraster und DTR-II-PDFs abgeglichen |
-
-⚠️ *Review durch die Gruppe: Alle drei lesen die Überarbeitung vor der Abgabe Zeile für Zeile durch.*
+| HTML | Erstversion (Claude): Grundgerüst `index.html`. Überarbeitung (Claude): Meta-Angaben und Favicon, semantische Struktur der Seiten (Überschriften, Labels, `time`, `nav`) | im Browser durchgespielt, in der Gruppe gelesen; Nu Html Checker auf allen 7 Seiten: 0 Fehler; Prüfskript für ein `main`, ein `h1`, Labels |
+| CSS | Erstversion (Claude): Stylesheet mit Custom Properties. Überarbeitung (Claude): Kartenansicht für Tabellen auf schmalen Bildschirmen, sichtbarer Fokus, Fehler beim Feld, Ladeanzeige, Entfernen von `!important` | im Browser bei 375 px und 1280 px geprüft, in der Gruppe gelesen; Messung der Seitenbreite, Lighthouse, Suche nach verbotenen Mustern |
+| JavaScript | Erstversion des Frontends (damals TypeScript) mit Claude erstellt (Commit `4b7b84a`). Überarbeitung (Claude): Aufteilung in Module (Regeln, Validierung, Liste, Rückmeldung), Funktionen unter 40 Zeilen, Sortierung und Filter, Verlauf, Benachrichtigung; Umstellung des Frontends von TypeScript auf JavaScript (Typangaben entfernt, Datenstrukturen als JSDoc) | mit allen Rollen im Browser durchgespielt, Code gemeinsam besprochen und von allen drei gelesen; ESLint mit den Regeln aus dem Raster (inkl. unbekannte und unbenutzte Variablen), automatisierter Prozessdurchlauf, Stichproben und Tastaturtest (Playwright), Test ohne Vite |
+| Daten | Datenmodell gemeinsam geplant, Umsetzung mit Claude: Prisma-Schema; in der Überarbeitung Tabelle `StatusAenderung` mit Migration, Demo-Daten mit 14 Anträgen und Musterbelegen | Datenmodell gegen die User Stories besprochen; Seed prüft jeden Schritt gegen das Zustandsdiagramm; End-to-End-Test |
+| Backend | Erstversion mit KI erstellt (Commit `8b0920b`, Co-Autor Claude; Prisma-Skills für KI-Assistenten in `backend/.agents`, `.claude`, `.windsurf`). Überarbeitung (Claude): zentrale Statusregeln, atomarer Statuswechsel mit Verlauf, Sichtbarkeit nach Rolle, Tests | Planung und Muster vorab festgelegt, Ergebnis geprüft und validiert (siehe `backend/README.md`, Abschnitt KI); mit Swagger und im Browser durchgespielt; 28 Unit-Tests und 4 End-to-End-Tests, ESLint, `tsc` |
+| Dokumentation | README, `docs/user-stories.md` und `docs/zustandsdiagramm.md` mit KI überarbeitet, auf Grundlage unserer DTR-II-Dokumente | von allen drei gelesen; gegen Bewertungsraster und DTR-II-PDFs abgeglichen |
 
 ## Quellen
 
