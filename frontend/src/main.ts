@@ -11,22 +11,23 @@ import { freigabeListeSeite } from './seiten/freigabe-liste';
 import { loginSeite } from './seiten/login';
 import { lohnbuchhaltungDetailSeite } from './seiten/lohnbuchhaltung-detail';
 import { lohnbuchhaltungListeSeite } from './seiten/lohnbuchhaltung-liste';
+import { ROLLE } from './typen';
 
 route(/^\/login$/, null, loginSeite);
 
 // Mitarbeitende
-route(/^\/antraege$/, 'MITARBEITENDE', antraegeListeSeite);
-route(/^\/antraege\/(\d+)$/, 'MITARBEITENDE', antragDetailSeite);
+route(/^\/antraege$/, ROLLE.MITARBEITENDE, antraegeListeSeite);
+route(/^\/antraege\/(\d+)$/, ROLLE.MITARBEITENDE, antragDetailSeite);
 
 // Vorgesetzte
-route(/^\/freigabe$/, 'VORGESETZTE', freigabeListeSeite);
-route(/^\/freigabe\/(\d+)$/, 'VORGESETZTE', freigabeDetailSeite);
+route(/^\/freigabe$/, ROLLE.VORGESETZTE, freigabeListeSeite);
+route(/^\/freigabe\/(\d+)$/, ROLLE.VORGESETZTE, freigabeDetailSeite);
 
 // Lohnbuchhaltung
-route(/^\/lohnbuchhaltung$/, 'LOHNBUCHHALTUNG', lohnbuchhaltungListeSeite);
+route(/^\/lohnbuchhaltung$/, ROLLE.LOHNBUCHHALTUNG, lohnbuchhaltungListeSeite);
 route(
   /^\/lohnbuchhaltung\/(\d+)$/,
-  'LOHNBUCHHALTUNG',
+  ROLLE.LOHNBUCHHALTUNG,
   lohnbuchhaltungDetailSeite,
 );
 

@@ -1,17 +1,19 @@
 /**
  * Kleine Helfer zum Bauen der Oberfläche ohne Framework.
- * Alles entsteht mit createElement und textContent, nie mit innerHTML,
+ * Alles entsteht mit createElement und textContent, nie aus HTML-Text,
  * damit Texte aus dem Backend (Zweck, Begründung) nie als HTML gedeutet werden.
  */
-import { ALLE_STATUS, type AntragStatus, type Kategorie } from './typen';
+import { monatOhneJahr } from './format';
+import { STATUS_TEXT } from './texte';
+import type { AntragStatus } from './typen';
 
-type Kind = Node | string | null | undefined | false;
+/** Was als Kind angehängt werden kann; null, undefined und false werden übersprungen. */
+export type Kind = Node | string | null | undefined | false;
 
 /**
  * Erzeugt ein Element, setzt Eigenschaften und hängt Kinder an.
  * Beispiel: el('button', { type: 'button', className: 'sekundaer' }, 'Löschen')
- * Strings werden als Text eingefügt. null, undefined und false werden übersprungen,
- * so lassen sich Kinder bedingt anhängen: `bearbeitbar && knopf`.
+ * Strings werden als Text eingefügt, so lassen sich Kinder bedingt anhängen: `bearbeitbar && knopf`.
  */
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -27,17 +29,15 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   return element;
 }
 
-/** Beschriftetes Formularfeld: <div class="feld"><label>…</label>{eingabe}</div> */
-export function feld(
-  beschriftung: string,
-  eingabe: HTMLElement & { id: string },
-): HTMLDivElement {
-  return el(
-    'div',
-    { className: 'feld' },
-    el('label', { htmlFor: eingabe.id }, beschriftung),
-    eingabe,
-  );
+/** Knopf mit Text, CSS-Klasse und Klick-Aktion (über addEventListener). */
+export function knopf(
+  text: string,
+  klasse: string,
+  aktion: () => void,
+): HTMLButtonElement {
+  const button = el('button', { type: 'button', className: klasse }, text);
+  button.addEventListener('click', aktion);
+  return button;
 }
 
 /** Auswahlliste aus (Wert, Text)-Paaren. */
@@ -48,22 +48,29 @@ export function auswahl(
 ): HTMLSelectElement {
   const select = el('select', { id, name: id });
   for (const option of optionen) {
-    select.append(
-      el(
-        'option',
-        { value: option.wert, selected: option.wert === gewaehlt },
-        option.text,
-      ),
-    );
+    const selected = option.wert === gewaehlt;
+    select.append(el('option', { value: option.wert, selected }, option.text));
   }
   return select;
 }
 
-/** Tabelle mit Kopfzeile. Zellen mit der Klasse "zahl" werden rechtsbündig. */
+/** Spaltentitel als data-label an jede Zelle hängen; das CSS zeigt ihn in der Kartenansicht. */
+export function spaltenBeschriften(
+  zeile: HTMLTableRowElement,
+  spalten: string[],
+): HTMLTableRowElement {
+  Array.from(zeile.cells).forEach((zelle, i) =>
+    zelle.setAttribute('data-label', spalten[i] ?? ''),
+  );
+  return zeile;
+}
+
+/** Einfache Tabelle mit Kopfzeile; auf schmalen Bildschirmen als Karten (siehe style.css). */
 export function tabelle(
   spalten: string[],
   zeilen: HTMLTableRowElement[],
 ): HTMLDivElement {
+  zeilen.forEach((zeile) => spaltenBeschriften(zeile, spalten));
   const kopf = el(
     'tr',
     {},
@@ -76,79 +83,21 @@ export function tabelle(
   );
 }
 
+/** Tabellenzelle; Klasse "zahl" macht sie rechtsbündig. */
 export function zelle(klasse: string, ...inhalt: Kind[]): HTMLTableCellElement {
   return el('td', { className: klasse }, ...inhalt);
 }
 
-/** Meldungszeile unter einem Formular oder einer Aktion. art: '', 'erfolg', 'warnung', 'fehler' */
+/** Meldungszeile setzen. art: '', 'erfolg', 'warnung', 'fehler' */
 export function zeigeMeldung(ziel: HTMLElement, text: string, art = ''): void {
   ziel.textContent = text;
   ziel.className = 'meldung ' + art;
 }
 
-// ---------- Formatierung (Schweizer Schreibweise) ----------
-
-export const chf = new Intl.NumberFormat('de-CH', {
-  style: 'currency',
-  currency: 'CHF',
-});
-
-/** "2026-11-05" oder ISO-Zeitstempel -> "05.11.2026" (ohne Date, damit keine Zeitzonen-Verschiebung) */
-export function datumCH(iso: string): string {
-  const [jahr, monat, tag] = iso.slice(0, 10).split('-');
-  return `${tag}.${monat}.${jahr}`;
+/** Leere Meldungszeile, die Screenreader bei Änderungen vorlesen. */
+export function meldungsZeile(): HTMLParagraphElement {
+  return el('p', { className: 'meldung', role: 'status' });
 }
-
-/** ISO-Zeitstempel -> "05.11.2026, 14:12", null -> "-" */
-export function zeitpunktCH(iso: string | null): string {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleString('de-CH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-}
-
-/** (2026, 11) -> "November 2026" */
-export function monatName(jahr: number, monat: number): string {
-  return new Date(jahr, monat - 1, 1).toLocaleDateString('de-CH', {
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-/** Erster und letzter Tag eines Monats als YYYY-MM-DD, für min/max im Datumsfeld. */
-export function monatsGrenzen(
-  jahr: number,
-  monat: number,
-): { von: string; bis: string } {
-  const mm = String(monat).padStart(2, '0');
-  const letzterTag = new Date(jahr, monat, 0).getDate();
-  return {
-    von: `${jahr}-${mm}-01`,
-    bis: `${jahr}-${mm}-${String(letzterTag).padStart(2, '0')}`,
-  };
-}
-
-/** Heutiges Datum als YYYY-MM-DD in Ortszeit. */
-export function heuteIso(): string {
-  return new Date().toLocaleDateString('sv-SE');
-}
-
-export const STATUS_TEXT: Record<AntragStatus, string> = {
-  ERFASST: 'In Erfassung',
-  EINGEREICHT: 'Eingereicht',
-  ZURUECKGEWIESEN: 'Zurückgewiesen',
-  GENEHMIGT: 'Genehmigt',
-  AUSBEZAHLT: 'Ausbezahlt',
-  ABGELEHNT: 'Abgelehnt',
-};
-
-export const KATEGORIE_TEXT: Record<Kategorie, string> = {
-  FAHRT: 'Fahrt',
-  VERPFLEGUNG: 'Verpflegung',
-  UEBERNACHTUNG: 'Übernachtung',
-  MATERIAL: 'Material',
-};
 
 /** Farbige Status-Marke, Farbe über die CSS-Klasse status-<status>. */
 export function statusMarke(status: AntragStatus): HTMLSpanElement {
@@ -166,14 +115,14 @@ export function dateiSpeichern(inhalt: Blob, dateiname: string): void {
   document.body.append(link); // Firefox braucht den Link im Dokument
   link.click();
   link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000); // erst freigeben, wenn der Download gestartet ist
+  setTimeout(() => URL.revokeObjectURL(url), 1000); // erst freigeben, wenn der Download läuft
 }
 
 /** Auswahlliste der zwölf Monate mit deutschen Namen, Werte "1" bis "12". */
 export function monatAuswahl(id: string, gewaehlt: number): HTMLSelectElement {
   const monate = Array.from({ length: 12 }, (_, i) => ({
     wert: String(i + 1),
-    text: new Date(2000, i, 1).toLocaleDateString('de-CH', { month: 'long' }),
+    text: monatOhneJahr(i + 1),
   }));
   return auswahl(id, monate, String(gewaehlt));
 }
@@ -186,13 +135,18 @@ export function jahrFeld(id: string, wert: number): HTMLInputElement {
     type: 'number',
     min: '2000',
     max: '2100',
+    step: '1',
     required: true,
     value: String(wert),
   });
 }
 
-/** Statuswerte als Optionen für Auswahllisten. */
-export const ALLE_STATUS_OPTIONEN = ALLE_STATUS.map((status) => ({
-  wert: status,
-  text: STATUS_TEXT[status],
-}));
+/** Status als Optionen für Auswahllisten, mit «Alle» als erster Option. */
+export function statusOptionen(
+  status: AntragStatus[],
+): { wert: string; text: string }[] {
+  return [
+    { wert: '', text: 'Alle Status' },
+    ...status.map((s) => ({ wert: s, text: STATUS_TEXT[s] })),
+  ];
+}

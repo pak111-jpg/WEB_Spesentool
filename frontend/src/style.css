@@ -14,6 +14,7 @@
   --c-erfolg: #0f5132;
   --c-erfolg-grund: #d1e7dd;
   --c-auf-marke: #ffffff;
+  --c-fokus: #1f4e79;
 
   --radius: 0.5rem;
   --abstand: 1rem;
@@ -38,11 +39,6 @@ body {
   line-height: 1.5;
   background: var(--c-grund);
   color: var(--c-text);
-}
-
-/* Das Attribut hidden muss gegen display: grid der Felder gewinnen */
-[hidden] {
-  display: none !important;
 }
 
 a {
@@ -90,6 +86,11 @@ a {
   color: var(--c-marke-hell);
 }
 
+.kopf a[aria-current='page'] {
+  font-weight: 700;
+  text-underline-offset: 0.3em;
+}
+
 .kopf button.leise {
   color: var(--c-auf-marke);
   text-decoration: underline;
@@ -98,22 +99,38 @@ a {
 /* ---------- Seitenaufbau ---------- */
 .inhalt {
   flex: 1;
+  min-width: 0;
   width: 100%;
   max-width: 72rem;
   margin: 0 auto;
   padding: var(--abstand);
 }
 
-.inhalt[aria-busy='true'] {
+/* Ladezustand: Der Router setzt aria-busy, solange eine Seite lädt (U3.5) */
+.inhalt[aria-busy='true'] > * {
   opacity: 0.6;
+}
+
+.inhalt[aria-busy='true']::before {
+  content: 'Daten werden geladen …';
+  display: block;
+  margin-bottom: var(--abstand);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  background: var(--c-marke-hell);
+  color: var(--c-marke);
+  font-weight: 600;
 }
 
 .seite {
   display: grid;
+  /* minmax(0, 1fr): breite Tabellen scrollen in ihrem Rahmen statt die Seite zu verbreitern */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--abstand);
 }
 
 .karte {
+  min-width: 0;
   background: var(--c-flaeche);
   border: 1px solid var(--c-linie);
   border-radius: var(--radius);
@@ -243,9 +260,30 @@ textarea {
   resize: vertical;
 }
 
+/* Fokus immer gut sichtbar (G5.3); auf der dunklen Kopfzeile in Weiss */
 :focus-visible {
-  outline: 3px solid var(--c-marke-hell);
+  outline: 3px solid var(--c-fokus);
   outline-offset: 2px;
+}
+
+.kopf :focus-visible {
+  outline-color: var(--c-auf-marke);
+}
+
+[aria-invalid='true'] {
+  border-color: var(--c-fehler);
+}
+
+/* Fehlermeldung direkt unter dem Feld (U4.2) */
+.feld-fehler {
+  margin: 0;
+  color: var(--c-fehler);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.feld-fehler:empty {
+  display: none;
 }
 
 /* ---------- Knöpfe ---------- */
@@ -266,7 +304,8 @@ button:disabled {
   cursor: progress;
 }
 
-button.sekundaer {
+button.sekundaer,
+.knopf.sekundaer {
   background: var(--c-flaeche);
   color: var(--c-marke);
 }
@@ -337,6 +376,16 @@ button.leise.gefahr {
   color: var(--c-fehler);
 }
 
+.hinweis.erfolg {
+  background: var(--c-erfolg-grund);
+  color: var(--c-erfolg);
+}
+
+.hinweis ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+}
+
 .leer,
 .leise {
   color: var(--c-text-leise);
@@ -349,8 +398,17 @@ button.leise.gefahr {
 }
 
 /* ---------- Tabellen ---------- */
+/* Mobile first: auf schmalen Bildschirmen ist jede Zeile eine Karte, jede Zelle zeigt ihren
+   Spaltentitel (data-label). Ab 40rem wird daraus eine normale Tabelle (Media Query unten). */
 .tabelle-rahmen {
   overflow-x: auto;
+}
+
+table,
+tbody,
+tr,
+td {
+  display: block;
 }
 
 table {
@@ -359,15 +417,49 @@ table {
   font-size: 0.95rem;
 }
 
-th,
+/* Kopfzeile bleibt als Leiste mit den Sortier-Knöpfen sichtbar */
+thead tr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+tbody tr {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--c-linie);
+  border-radius: var(--radius);
+}
+
 td {
-  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 35%) 1fr;
+  justify-items: start;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
   text-align: left;
-  border-bottom: 1px solid var(--c-linie);
-  vertical-align: top;
+}
+
+td::before {
+  content: attr(data-label);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--c-text-leise);
+}
+
+/* In der Kartenansicht nur sortierbare Titel zeigen; die übrigen bleiben für Screenreader */
+th:not(:has(.sortier-knopf)) {
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 th {
+  padding: 0;
+  text-align: left;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -375,7 +467,6 @@ th {
 }
 
 .zahl {
-  text-align: right;
   white-space: nowrap;
 }
 
@@ -385,12 +476,32 @@ td .aktionen {
   gap: 0.25rem 0.5rem;
 }
 
+/* Sortierbare Spalten: Knopf im Spaltenkopf, Pfeil zeigt die Richtung (aria-sort) */
+.sortier-knopf {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline dotted;
+}
+
+th[aria-sort='ascending'] .sortier-knopf::after {
+  content: ' ▲';
+}
+
+th[aria-sort='descending'] .sortier-knopf::after {
+  content: ' ▼';
+}
+
 tr.problem {
   background: var(--c-fehler-grund);
 }
 
-tr.ueberfaellig td:first-child {
-  box-shadow: inset 3px 0 0 var(--c-fehler);
+tbody tr.ueberfaellig {
+  border-left: 4px solid var(--c-fehler);
 }
 
 tr.summe td {
@@ -478,7 +589,6 @@ tr.summe td {
 
 /* Nur für Screenreader und Tastatur: das Datei-Feld bleibt fokussierbar, ist aber unsichtbar */
 .nur-screenreader {
-  position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
@@ -487,8 +597,26 @@ tr.summe td {
 }
 
 label.leise:has(.nur-screenreader:focus-visible) {
-  outline: 3px solid var(--c-marke-hell);
+  outline: 3px solid var(--c-fokus);
   outline-offset: 2px;
+}
+
+/* ---------- Verlauf der Statusänderungen ---------- */
+.verlauf {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.verlauf li {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.verlauf time {
+  font-size: 0.85rem;
+  color: var(--c-text-leise);
 }
 
 /* ---------- Mobile first: Ergänzungen ab 40rem (640px) Breite ---------- */
@@ -509,6 +637,57 @@ label.leise:has(.nur-screenreader:focus-visible) {
   .formular.zeile {
     grid-template-columns: repeat(auto-fit, minmax(10rem, max-content));
   }
+
+  /* Tabellen: aus den Karten wird eine normale Tabelle */
+  table {
+    display: table;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  thead tr,
+  tbody tr {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  th,
+  td,
+  th:not(:has(.sortier-knopf)) {
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    display: table-cell;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--c-linie);
+    vertical-align: top;
+  }
+
+  td::before {
+    content: none;
+  }
+
+  .zahl {
+    text-align: right;
+  }
+
+  tbody tr.ueberfaellig {
+    border-left: none;
+  }
+
+  tr.ueberfaellig td:first-child {
+    box-shadow: inset 3px 0 0 var(--c-fehler);
+  }
 }
 
 /* ---------- Demo-Zugänge auf der Anmeldeseite ---------- */
@@ -520,4 +699,10 @@ label.leise:has(.nur-screenreader:focus-visible) {
 .demo ul {
   margin: 0;
   padding-left: 1rem;
+}
+
+/* Das Attribut hidden blendet aus. Steht am Schluss, damit es gegen gleich spezifische
+   Regeln wie .feld { display: grid } gewinnt (ohne Vorrang-Markierung). */
+[hidden] {
+  display: none;
 }
