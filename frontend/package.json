@@ -1,17 +1,16 @@
 {
   "name": "spesen-web-1-frontend",
   "version": "0.0.1",
-  "description": "Frontend des Spesenportals (Vite, TypeScript, ohne UI-Framework)",
+  "description": "Browser-Oberfläche des Spesenportals: HTML, CSS und JavaScript (ES-Module), ohne Framework",
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "check": "tsc --noEmit",
-    "lint": "eslint \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.{ts,css}\" index.html"
+    "lint": "eslint src",
+    "format": "prettier --write \"src/**/*.{js,css}\" index.html"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
@@ -20,8 +19,6 @@
     "eslint-plugin-prettier": "5.5.7",
     "globals": "17.14.0",
     "prettier": "3.10.1",
-    "typescript": "6.0.3",
-    "typescript-eslint": "8.72.2",
     "vite": "8.3.8"
   }
 }

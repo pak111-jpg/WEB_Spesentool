@@ -87,6 +87,47 @@ function betragVon(position: PositionDaten): number {
   return position.betrag ?? 0;
 }
 
+/** Textzeilen des Musterbelegs: Fahrtenbuch bei FAHRT, sonst Quittung. */
+function belegZeilen(
+  position: PositionDaten,
+  datum: Date,
+  betrag: number,
+  nummer: number,
+): string[] {
+  const datumText = datum
+    .toISOString()
+    .slice(0, 10)
+    .split('-')
+    .reverse()
+    .join('.');
+  const total = `Total: CHF ${betrag.toFixed(2)}`;
+  if (position.kategorie === Kategorie.FAHRT) {
+    const pauschale = `Pauschale: CHF ${KILOMETERPAUSCHALE.toFixed(2)} pro km`;
+    return [
+      'Fahrtenbuch Privatfahrzeug',
+      `Datum: ${datumText}`,
+      position.zweck,
+      `Kilometer: ${position.km}`,
+      pauschale,
+      total,
+      '',
+      'Musterbeleg (Testdaten)',
+    ];
+  }
+  return [
+    position.aussteller ?? 'Muster AG',
+    'Musterstrasse 1, 3000 Bern',
+    `Datum: ${datumText}`,
+    `Beleg-Nr. ${10000 + nummer}`,
+    position.zweck,
+    total,
+    'inkl. MWST 8.1 %',
+    'MWST-Nr. CHE-000.000.000 MWST',
+    '',
+    'Musterbeleg (Testdaten)',
+  ];
+}
+
 /** Schreibt einen Musterbeleg als PDF und liefert die Daten für den Beleg-Datensatz. */
 async function belegSchreiben(
   position: PositionDaten,
@@ -94,37 +135,7 @@ async function belegSchreiben(
   betrag: number,
   nummer: number,
 ) {
-  const datumText = datum
-    .toISOString()
-    .slice(0, 10)
-    .split('-')
-    .reverse()
-    .join('.');
-  const zeilen =
-    position.kategorie === Kategorie.FAHRT
-      ? [
-          'Fahrtenbuch Privatfahrzeug',
-          `Datum: ${datumText}`,
-          position.zweck,
-          `Kilometer: ${position.km}`,
-          `Pauschale: CHF ${KILOMETERPAUSCHALE.toFixed(2)} pro km`,
-          `Total: CHF ${betrag.toFixed(2)}`,
-          '',
-          'Musterbeleg (Testdaten)',
-        ]
-      : [
-          position.aussteller ?? 'Muster AG',
-          'Musterstrasse 1, 3000 Bern',
-          `Datum: ${datumText}`,
-          `Beleg-Nr. ${10000 + nummer}`,
-          position.zweck,
-          `Total: CHF ${betrag.toFixed(2)}`,
-          'inkl. MWST 8.1 %',
-          'MWST-Nr. CHE-000.000.000 MWST',
-          '',
-          'Musterbeleg (Testdaten)',
-        ];
-  const inhalt = belegPdf(zeilen);
+  const inhalt = belegPdf(belegZeilen(position, datum, betrag, nummer));
   const pfad = `seed-beleg-${nummer}.pdf`;
   await writeFile(join(UPLOAD_DIR, pfad), inhalt);
   return {

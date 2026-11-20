@@ -3,7 +3,7 @@
 Modelliertes Objekt: ein Spesenantrag (Monatsabrechnung einer mitarbeitenden Person).
 Grundlage ist unser Diagramm aus DTR II (`dtr2/Spesenportal-UML.pdf`, Seite 4), mit zwei Korrekturen
 (siehe unten). Im Code steht dieselbe Tabelle an einer Stelle:
-`backend/src/antraege/statusregeln.ts` (durchgesetzt) und `frontend/src/regeln.ts` (Knöpfe ein- und ausblenden).
+`backend/src/antraege/statusregeln.ts` (durchgesetzt) und `frontend/src/regeln.js` (Knöpfe ein- und ausblenden).
 
 GitHub zeigt das folgende Mermaid-Diagramm direkt als Grafik an.
 
@@ -50,7 +50,7 @@ Alle anderen Wechsel sind nicht vorgesehen, z. B. einen genehmigten Antrag zurü
 abgelehnten Antrag erneut einreichen, einen nicht genehmigten Antrag auszahlen oder einen ausbezahlten
 Antrag ein zweites Mal markieren. Die Anwendung verhindert sie zweifach:
 
-- **Oberfläche:** Die Knöpfe für nicht erlaubte Aktionen werden gar nicht angezeigt (`frontend/src/regeln.ts`).
+- **Oberfläche:** Die Knöpfe für nicht erlaubte Aktionen werden gar nicht angezeigt (`frontend/src/regeln.js`).
 - **Logik:** Das Backend prüft jeden Wechsel gegen die Tabelle oben und antwortet mit `409 Conflict`
   (`statusWechseln()` in `backend/src/antraege/statuswechsel.ts`). Das Update greift nur, wenn der Antrag
   noch im erwarteten Status ist; ein Doppelklick erzeugt deshalb keinen zweiten Wechsel.

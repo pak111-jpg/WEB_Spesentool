@@ -21,6 +21,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto, UserDto } from './dto/user.dto';
 
+/** REST-Endpunkte: Anmeldung mit JWT (Details in Swagger unter /api). */
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {

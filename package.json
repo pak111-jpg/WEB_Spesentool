@@ -2,7 +2,7 @@
   "name": "spesenportal",
   "version": "1.0.0",
   "private": true,
-  "description": "Digitales Spesenportal (WEB I / DTR II): Backend (NestJS, MariaDB) und Frontend (Vite, TypeScript ohne Framework)",
+  "description": "Digitales Spesenportal (WEB I / DTR II): Backend (NestJS, MariaDB) und Frontend (HTML, CSS, JavaScript ohne Framework)",
   "scripts": {
     "setup": "npm install && node scripts/setup.mjs",
     "start": "concurrently --names backend,frontend --prefix-colors blue,green \"npm --prefix backend run start:dev\" \"npm --prefix frontend run dev\"",

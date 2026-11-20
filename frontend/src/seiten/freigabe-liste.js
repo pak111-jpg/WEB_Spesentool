@@ -2,7 +2,7 @@
  * Vorgesetzte: offene Anträge des Teams mit Überfälligkeit (VG-1, VG-4) und die Team-Historie
  * (VG-5), kombiniert filterbar nach Status und Person und sortierbar nach jeder Spalte.
  */
-import * as api from '../api';
+import * as api from '../api.js';
 import {
   auswahl,
   el,
@@ -10,42 +10,32 @@ import {
   statusMarke,
   statusOptionen,
   zeigeMeldung,
-} from '../dom';
-import { chf, monatName, monatSchluessel, zeitpunktCH } from '../format';
-import { eingabe, feld } from '../formular';
-import {
-  sortierbareTabelle,
-  type Spalte,
-} from '../komponenten/sortier-tabelle';
-import { filtern, gleichWennGewaehlt } from '../liste';
-import { summeTotal } from '../regeln';
-import {
-  ALLE_STATUS,
-  FRIST_ARBEITSTAGE,
-  STATUS,
-  type Antrag,
-  type AntragStatus,
-  type OffenerAntrag,
-} from '../typen';
+} from '../dom.js';
+import { chf, monatName, monatSchluessel, zeitpunktCH } from '../format.js';
+import { eingabe, feld } from '../formular.js';
+import { sortierbareTabelle } from '../komponenten/sortier-tabelle.js';
+import { filtern, gleichWennGewaehlt } from '../liste.js';
+import { summeTotal } from '../regeln.js';
+import { ALLE_STATUS, FRIST_ARBEITSTAGE, STATUS } from '../typen.js';
 
-const PERSON: Spalte<Antrag> = {
+const PERSON = {
   titel: 'Person',
   inhalt: (a) => a.mitarbeitende.name,
   sortWert: (a) => a.mitarbeitende.name,
 };
-const MONAT: Spalte<Antrag> = {
+const MONAT = {
   titel: 'Monat',
   inhalt: (a) => monatName(a.jahr, a.monat),
   sortWert: (a) => monatSchluessel(a.jahr, a.monat),
 };
-const TOTAL: Spalte<Antrag> = {
+const TOTAL = {
   titel: 'Total',
   inhalt: (a) => chf.format(a.total),
   sortWert: (a) => a.total,
   klasse: 'zahl',
 };
 
-const OFFEN_SPALTEN: Spalte<OffenerAntrag>[] = [
+const OFFEN_SPALTEN = [
   PERSON,
   MONAT,
   TOTAL,
@@ -68,7 +58,7 @@ const OFFEN_SPALTEN: Spalte<OffenerAntrag>[] = [
   },
 ];
 
-const TEAM_SPALTEN: Spalte<Antrag>[] = [
+const TEAM_SPALTEN = [
   PERSON,
   MONAT,
   {
@@ -88,11 +78,7 @@ const TEAM_SPALTEN: Spalte<Antrag>[] = [
   },
 ];
 
-function offeneZeichnen(
-  box: HTMLElement,
-  offene: OffenerAntrag[],
-  nurUeberfaellig: boolean,
-): void {
+function offeneZeichnen(box, offene, nurUeberfaellig) {
   const sichtbar = offene.filter((a) => !nurUeberfaellig || a.ueberfaellig);
   const anzahlUeberfaellig = offene.filter((a) => a.ueberfaellig).length;
   const zusammenfassung = `${offene.length} offen, davon ${anzahlUeberfaellig} überfällig (Frist ${FRIST_ARBEITSTAGE} Arbeitstage)`;
@@ -114,7 +100,7 @@ function offeneZeichnen(
 }
 
 /** VG-1/VG-4: offene Anträge, älteste zuerst; Checkbox zeigt nur überfällige. */
-function offeneKarte(offene: OffenerAntrag[]): HTMLElement {
+function offeneKarte(offene) {
   const nurUeberfaellig = eingabe('f-ueberfaellig', 'checkbox');
   const box = el('div');
   nurUeberfaellig.addEventListener('change', () =>
@@ -139,13 +125,9 @@ function offeneKarte(offene: OffenerAntrag[]): HTMLElement {
   );
 }
 
-function teamZeichnen(
-  box: HTMLElement,
-  antraege: Antrag[],
-  person: string,
-): void {
+function teamZeichnen(box, antraege, person) {
   const sichtbar = filtern(antraege, [
-    gleichWennGewaehlt(person, (a: Antrag) => a.mitarbeitende.name),
+    gleichWennGewaehlt(person, (a) => a.mitarbeitende.name),
   ]);
   box.replaceChildren(
     sichtbar.length === 0
@@ -162,7 +144,7 @@ function teamZeichnen(
   );
 }
 
-function personAuswahl(team: Antrag[]): HTMLSelectElement {
+function personAuswahl(team) {
   const namen = [...new Set(team.map((a) => a.mitarbeitende.name))].sort();
   return auswahl('filter-person', [
     { wert: '', text: 'Alle Personen' },
@@ -171,7 +153,7 @@ function personAuswahl(team: Antrag[]): HTMLSelectElement {
 }
 
 /** VG-5: Team-Historie; Status filtert das Backend, Person der Browser (kombiniert). */
-function teamKarte(team: Antrag[]): HTMLElement {
+function teamKarte(team) {
   let antraege = team;
   const sichtbareStatus = ALLE_STATUS.filter((s) => s !== STATUS.ERFASST);
   const status = auswahl('filter-status', statusOptionen(sichtbareStatus));
@@ -181,9 +163,7 @@ function teamKarte(team: Antrag[]): HTMLElement {
   const statusLaden = async () => {
     box.replaceChildren(el('p', { className: 'leer' }, 'Wird geladen …'));
     try {
-      antraege = await api.freigabe.team(
-        (status.value || undefined) as AntragStatus | undefined,
-      );
+      antraege = await api.freigabe.team(status.value || undefined);
       teamZeichnen(box, antraege, person.value);
     } catch (fehler) {
       zeigeMeldung(meldung, api.fehlerText(fehler), 'fehler');
@@ -212,7 +192,7 @@ function teamKarte(team: Antrag[]): HTMLElement {
 }
 
 /** Seite «Freigabe» der Vorgesetzten. */
-export async function freigabeListeSeite(): Promise<HTMLElement> {
+export async function freigabeListeSeite() {
   const [offene, team] = await Promise.all([
     api.freigabe.offene(),
     api.freigabe.team(),

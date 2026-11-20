@@ -2,11 +2,10 @@
  * Zeigt einen Beleg (Bild oder PDF) in einem <dialog>, ohne Download (VG-2, LB-2).
  * Die Datei wird mit Token geladen und als Blob-URL eingebettet.
  */
-import * as api from '../api';
-import { el, knopf, zeigeMeldung } from '../dom';
-import type { Beleg } from '../typen';
+import * as api from '../api.js';
+import { el, knopf, zeigeMeldung } from '../dom.js';
 
-function dialogBauen(beleg: Beleg, url: string): HTMLDialogElement {
+function dialogBauen(beleg, url) {
   const inhalt = beleg.mimeType.startsWith('image/')
     ? el('img', { src: url, alt: `Beleg ${beleg.dateiname}` })
     : el('iframe', { src: url, title: `Beleg ${beleg.dateiname}` });
@@ -30,11 +29,8 @@ function dialogBauen(beleg: Beleg, url: string): HTMLDialogElement {
 }
 
 /** Lädt den Beleg mit Token und öffnet ihn im Dialog; Fehler erscheinen in `meldung`. */
-export async function belegAnzeigen(
-  beleg: Beleg,
-  meldung: HTMLElement,
-): Promise<void> {
-  let url: string;
+export async function belegAnzeigen(beleg, meldung) {
+  let url;
   try {
     url = URL.createObjectURL(await api.belege.laden(beleg.id));
   } catch (fehler) {
@@ -47,10 +43,7 @@ export async function belegAnzeigen(
 }
 
 /** Knopf «Beleg anzeigen» für eine Position mit Beleg. */
-export function belegKnopf(
-  beleg: Beleg,
-  meldung: HTMLElement,
-): HTMLButtonElement {
+export function belegKnopf(beleg, meldung) {
   return knopf(
     'Beleg anzeigen',
     'leise',

@@ -2,7 +2,7 @@
  * Mitarbeitende: Übersicht der eigenen Monatsabrechnungen (MA-4) mit Filter und Sortierung,
  * Hinweis bei zurückgewiesenen Abrechnungen (VG-3) und neuen Monat anlegen.
  */
-import * as api from '../api';
+import * as api from '../api.js';
 import {
   auswahl,
   el,
@@ -11,21 +11,18 @@ import {
   monatAuswahl,
   statusMarke,
   statusOptionen,
-} from '../dom';
-import { chf, monatName, monatSchluessel, zeitpunktCH } from '../format';
-import { feld, fehlerBeimFeld, pruefeFelder } from '../formular';
-import { filtern, gleichWennGewaehlt } from '../liste';
-import { brauchtKorrektur, summeTotal } from '../regeln';
-import { merkeMeldung } from '../rueckmeldung';
-import { navigiere } from '../router';
-import { ALLE_STATUS, type Antrag } from '../typen';
-import { ganzzahlZwischen } from '../validierung';
-import {
-  sortierbareTabelle,
-  type Spalte,
-} from '../komponenten/sortier-tabelle';
+} from '../dom.js';
+import { chf, monatName, monatSchluessel, zeitpunktCH } from '../format.js';
+import { feld, fehlerBeimFeld, pruefeFelder } from '../formular.js';
+import { filtern, gleichWennGewaehlt } from '../liste.js';
+import { brauchtKorrektur, summeTotal } from '../regeln.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { navigiere } from '../router.js';
+import { ALLE_STATUS } from '../typen.js';
+import { ganzzahlZwischen } from '../validierung.js';
+import { sortierbareTabelle } from '../komponenten/sortier-tabelle.js';
 
-const SPALTEN: Spalte<Antrag>[] = [
+const SPALTEN = [
   {
     titel: 'Monat',
     inhalt: (a) =>
@@ -58,7 +55,7 @@ const SPALTEN: Spalte<Antrag>[] = [
 ];
 
 /** VG-3: Benachrichtigung über zurückgewiesene Abrechnungen, die korrigiert werden müssen. */
-function benachrichtigungen(antraege: Antrag[]): HTMLElement | null {
+function benachrichtigungen(antraege) {
   const offen = brauchtKorrektur(antraege);
   if (offen.length === 0) return null;
   const eintraege = offen.map((antrag) =>
@@ -78,7 +75,7 @@ function benachrichtigungen(antraege: Antrag[]): HTMLElement | null {
   );
 }
 
-function tabelleZeichnen(box: HTMLElement, antraege: Antrag[]): void {
+function tabelleZeichnen(box, antraege) {
   if (antraege.length === 0) {
     box.replaceChildren(
       el('p', { className: 'leer' }, 'Keine Abrechnungen für diese Auswahl.'),
@@ -92,7 +89,7 @@ function tabelleZeichnen(box: HTMLElement, antraege: Antrag[]): void {
   );
 }
 
-function uebersicht(antraege: Antrag[]): HTMLElement {
+function uebersicht(antraege) {
   if (antraege.length === 0) {
     return el(
       'p',
@@ -114,8 +111,8 @@ function uebersicht(antraege: Antrag[]): HTMLElement {
     tabelleZeichnen(
       box,
       filtern(antraege, [
-        gleichWennGewaehlt(jahr.value, (a: Antrag) => a.jahr),
-        gleichWennGewaehlt(status.value, (a: Antrag) => a.status),
+        gleichWennGewaehlt(jahr.value, (a) => a.jahr),
+        gleichWennGewaehlt(status.value, (a) => a.status),
       ]),
     );
   jahr.addEventListener('change', aktualisieren);
@@ -131,11 +128,7 @@ function uebersicht(antraege: Antrag[]): HTMLElement {
   return el('div', {}, filter, box);
 }
 
-async function anlegen(
-  monat: HTMLSelectElement,
-  jahr: HTMLInputElement,
-  meldung: HTMLElement,
-): Promise<void> {
+async function anlegen(monat, jahr, meldung) {
   if (!pruefeFelder([[jahr, [ganzzahlZwischen(2000, 2100, 'Jahr')]]])) return;
   try {
     const antrag = await api.antraege.erstellen({
@@ -152,7 +145,7 @@ async function anlegen(
   }
 }
 
-function neuKarte(): HTMLElement {
+function neuKarte() {
   const heute = new Date();
   const monat = monatAuswahl('f-monat', heute.getMonth() + 1);
   const jahr = jahrFeld('f-jahr', heute.getFullYear());
@@ -185,7 +178,7 @@ function neuKarte(): HTMLElement {
 }
 
 /** Seite «Meine Abrechnungen». */
-export async function antraegeListeSeite(): Promise<HTMLElement> {
+export async function antraegeListeSeite() {
   const antraege = await api.antraege.meine();
   return el(
     'div',

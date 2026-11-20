@@ -1,13 +1,13 @@
 /**
  * Anmeldeseite. Nach dem Login landet jede Rolle auf ihrer Startseite.
  */
-import * as api from '../api';
-import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
-import { feld, pruefeFelder } from '../formular';
-import { merkeMeldung } from '../rueckmeldung';
-import { navigiere, STARTSEITE } from '../router';
-import { anmelden } from '../session';
-import { email as emailRegel, pflicht } from '../validierung';
+import * as api from '../api.js';
+import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom.js';
+import { feld, fehlerBeimFeld, pruefeFelder } from '../formular.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { navigiere, STARTSEITE } from '../router.js';
+import { anmelden } from '../session.js';
+import { email as emailRegel, pflicht } from '../validierung.js';
 
 // Demo-Personen aus backend/prisma/seed-daten.ts (Passwort überall "passwort")
 const DEMO_LOGINS = [
@@ -21,14 +21,15 @@ const DEMO_LOGINS = [
   { email: 'lena.schmid@firma.ch', text: 'Lena Schmid, Lohnbuchhaltung' },
 ];
 
-interface LoginFelder {
-  email: HTMLInputElement;
-  passwort: HTMLInputElement;
-  knopf: HTMLButtonElement;
-  meldung: HTMLElement;
-}
+/**
+ * @typedef {Object} LoginFelder
+ * @property {HTMLInputElement} email
+ * @property {HTMLInputElement} passwort
+ * @property {HTMLButtonElement} knopf
+ * @property {HTMLElement} meldung
+ */
 
-async function absenden(felder: LoginFelder): Promise<void> {
+async function absenden(felder) {
   const gueltig = pruefeFelder([
     [felder.email, [pflicht('E-Mail'), emailRegel()]],
     [felder.passwort, [pflicht('Passwort')]],
@@ -45,13 +46,18 @@ async function absenden(felder: LoginFelder): Promise<void> {
     merkeMeldung(`Angemeldet als ${antwort.user.name}.`);
     navigiere(STARTSEITE[antwort.user.rolle]);
   } catch (fehler) {
-    zeigeMeldung(felder.meldung, api.fehlerText(fehler), 'fehler');
+    // 401 «E-Mail oder Passwort falsch» erscheint beim Feld Passwort, alles andere darunter
+    fehlerBeimFeld(
+      fehler,
+      [[/Passwort falsch/, felder.passwort]],
+      felder.meldung,
+    );
   } finally {
     felder.knopf.disabled = false;
   }
 }
 
-function demoListe(felder: LoginFelder): HTMLElement {
+function demoListe(felder) {
   const eintraege = DEMO_LOGINS.map((demo) =>
     el(
       'li',
@@ -73,8 +79,8 @@ function demoListe(felder: LoginFelder): HTMLElement {
 }
 
 /** Seite «Anmelden» mit Formular und Demo-Zugängen. */
-export function loginSeite(): HTMLElement {
-  const felder: LoginFelder = {
+export function loginSeite() {
+  const felder = {
     email: el('input', {
       id: 'f-email',
       name: 'email',

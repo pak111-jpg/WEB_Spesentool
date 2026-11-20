@@ -40,6 +40,7 @@ export interface HochgeladeneDatei {
   buffer: Buffer;
 }
 
+/** Geschäftslogik: Belegdateien. */
 @Injectable()
 export class BelegeService {
   private readonly uploadDir: string;
@@ -57,6 +58,32 @@ export class BelegeService {
     positionId: number,
     datei: HochgeladeneDatei | undefined,
   ): Promise<BelegDto> {
+    const gueltig = this.pruefeDatei(datei);
+    const position = await this.ladeBearbeitbarePosition(userId, positionId);
+
+    await mkdir(this.uploadDir, { recursive: true });
+    const pfad = `${randomUUID()}${extname(gueltig.originalname).toLowerCase()}`;
+    await writeFile(join(this.uploadDir, pfad), gueltig.buffer);
+    if (position.beleg) {
+      await this.dateiLoeschen(position.beleg.pfad);
+    }
+
+    const daten = {
+      dateiname: gueltig.originalname,
+      mimeType: gueltig.mimetype,
+      groesse: gueltig.size,
+      pfad,
+    };
+    const beleg = await this.prisma.beleg.upsert({
+      where: { positionId },
+      create: { positionId, ...daten },
+      update: daten,
+    });
+    return toBelegDto(beleg);
+  }
+
+  /** Datei vorhanden und erlaubter Typ? Sonst 400. */
+  private pruefeDatei(datei: HochgeladeneDatei | undefined): HochgeladeneDatei {
     if (!datei) {
       throw new BadRequestException('Keine Datei im Feld "datei" mitgeschickt');
     }
@@ -65,7 +92,11 @@ export class BelegeService {
         `Dateityp ${datei.mimetype} nicht erlaubt (${ERLAUBTE_MIME_TYPES.join(', ')})`,
       );
     }
+    return datei;
+  }
 
+  /** Eigene Position laden; der Antrag muss noch bearbeitbar sein (sonst 404 bzw. 409). */
+  private async ladeBearbeitbarePosition(userId: number, positionId: number) {
     const position = await this.prisma.position.findFirst({
       where: { id: positionId, antrag: { mitarbeitendeId: userId } },
       include: { beleg: true, antrag: true },
@@ -78,27 +109,7 @@ export class BelegeService {
         `Antrag im Status ${position.antrag.status} kann nicht bearbeitet werden`,
       );
     }
-
-    await mkdir(this.uploadDir, { recursive: true });
-    const pfad = `${randomUUID()}${extname(datei.originalname).toLowerCase()}`;
-    await writeFile(join(this.uploadDir, pfad), datei.buffer);
-
-    if (position.beleg) {
-      await this.dateiLoeschen(position.beleg.pfad);
-    }
-
-    const daten = {
-      dateiname: datei.originalname,
-      mimeType: datei.mimetype,
-      groesse: datei.size,
-      pfad,
-    };
-    const beleg = await this.prisma.beleg.upsert({
-      where: { positionId },
-      create: { positionId, ...daten },
-      update: daten,
-    });
-    return toBelegDto(beleg);
+    return position;
   }
 
   /**

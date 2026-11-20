@@ -3,43 +3,42 @@
  * Solange sie ERFASST oder ZURUECKGEWIESEN ist, können Positionen erfasst, geändert und
  * gelöscht, Belege hochgeladen und die Abrechnung eingereicht werden (MA-1, MA-2, MA-3, MA-5).
  */
-import * as api from '../api';
-import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
-import { monatName } from '../format';
+import * as api from '../api.js';
+import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom.js';
+import { monatName } from '../format.js';
 import {
   antragKopf,
   positionenTabelle,
   verlaufKarte,
-  type Aktionen,
-} from '../komponenten/antrag-ansicht';
-import { positionAktionen } from '../komponenten/position-aktionen';
-import { positionFormular } from '../komponenten/position-formular';
+} from '../komponenten/antrag-ansicht.js';
+import { positionAktionen } from '../komponenten/position-aktionen.js';
+import { positionFormular } from '../komponenten/position-formular.js';
 import {
   istBearbeitbar,
   kannEinreichen,
   kannLoeschen,
   pruefeVollstaendigkeit,
-} from '../regeln';
-import { merkeMeldung } from '../rueckmeldung';
-import { navigiere, neuLaden } from '../router';
-import type { AntragDetail, PositionFehler } from '../typen';
+} from '../regeln.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { navigiere, neuLaden } from '../router.js';
 
-interface Ansicht {
-  antrag: AntragDetail;
-  tabelleBox: HTMLElement;
-  meldung: HTMLElement;
-  aktionen?: Aktionen;
-}
+/**
+ * @typedef {Object} Ansicht
+ * @property {AntragDetail} antrag
+ * @property {HTMLElement} tabelleBox
+ * @property {HTMLElement} meldung
+ * @property {Aktionen} [aktionen]
+ */
 
 /** Tabelle (neu) zeichnen, optional mit den Problemen pro Position nach dem Einreichen. */
-function tabelleZeichnen(a: Ansicht, probleme: PositionFehler[] = []): void {
+function tabelleZeichnen(a, probleme = []) {
   a.tabelleBox.replaceChildren(
     positionenTabelle(a.antrag.positionen, a.meldung, a.aktionen, probleme),
   );
 }
 
 /** Unvollständige Positionen in der Tabelle markieren und die Meldung zeigen. */
-function problemeZeigen(a: Ansicht, probleme: PositionFehler[]): void {
+function problemeZeigen(a, probleme) {
   tabelleZeichnen(a, probleme);
   const allgemein = probleme.find((p) => p.positionId === null);
   const text = allgemein
@@ -49,10 +48,7 @@ function problemeZeigen(a: Ansicht, probleme: PositionFehler[]): void {
 }
 
 /** MA-3: Einreichen. Erst im Browser prüfen; das Backend prüft dieselbe Regel nochmals (400). */
-async function einreichen(
-  a: Ansicht,
-  knopfEl: HTMLButtonElement,
-): Promise<void> {
+async function einreichen(a, knopfEl) {
   const probleme = pruefeVollstaendigkeit(a.antrag.positionen);
   if (probleme.length > 0) return problemeZeigen(a, probleme);
   knopfEl.disabled = true; // gegen doppeltes Absenden
@@ -72,7 +68,7 @@ async function einreichen(
   }
 }
 
-async function loeschen(a: Ansicht): Promise<void> {
+async function loeschen(a) {
   if (!confirm('Diese Abrechnung mit allen Positionen löschen?')) return;
   try {
     await api.antraege.loeschen(a.antrag.id);
@@ -85,7 +81,7 @@ async function loeschen(a: Ansicht): Promise<void> {
   }
 }
 
-function antragAktionen(a: Ansicht): HTMLElement {
+function antragAktionen(a) {
   const { status } = a.antrag;
   if (!kannEinreichen(status)) {
     return el(
@@ -94,7 +90,7 @@ function antragAktionen(a: Ansicht): HTMLElement {
       'Diese Abrechnung ist eingereicht und kann nicht mehr bearbeitet werden.',
     );
   }
-  const einreichenKnopf: HTMLButtonElement = knopf(
+  const einreichenKnopf = knopf(
     'Abrechnung einreichen',
     '',
     () => void einreichen(a, einreichenKnopf),
@@ -109,13 +105,13 @@ function antragAktionen(a: Ansicht): HTMLElement {
 }
 
 /** Seite «Abrechnung» der Mitarbeitenden. */
-export async function antragDetailSeite([id]: string[]): Promise<HTMLElement> {
+export async function antragDetailSeite([id]) {
   const [antrag, pauschale] = await Promise.all([
     api.antraege.einer(Number(id)),
     api.positionen.kilometerpauschale(),
   ]);
   const bearbeitbar = istBearbeitbar(antrag.status);
-  const a: Ansicht = {
+  const a = {
     antrag,
     tabelleBox: el('div'),
     meldung: meldungsZeile(),

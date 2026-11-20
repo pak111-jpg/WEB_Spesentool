@@ -16,6 +16,7 @@ import { OffenerAntragDto } from './dto/freigabe.dto';
 /** Frist für den Entscheid der vorgesetzten Person (VG-4). */
 export const ENTSCHEID_FRIST_ARBEITSTAGE = 2;
 
+/** Geschäftslogik: Prüfen und Entscheiden durch Vorgesetzte. */
 @Injectable()
 export class FreigabeService {
   constructor(private readonly prisma: PrismaService) {}

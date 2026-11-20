@@ -3,23 +3,20 @@
  * Alles entsteht mit createElement und textContent, nie aus HTML-Text,
  * damit Texte aus dem Backend (Zweck, Begründung) nie als HTML gedeutet werden.
  */
-import { monatOhneJahr } from './format';
-import { STATUS_TEXT } from './texte';
-import type { AntragStatus } from './typen';
+import { monatOhneJahr } from './format.js';
+import { STATUS_TEXT } from './texte.js';
 
-/** Was als Kind angehängt werden kann; null, undefined und false werden übersprungen. */
-export type Kind = Node | string | null | undefined | false;
+/**
+ * Was als Kind angehängt werden kann; null, undefined und false werden übersprungen.
+ * @typedef {Node | string | null | undefined | false} Kind
+ */
 
 /**
  * Erzeugt ein Element, setzt Eigenschaften und hängt Kinder an.
  * Beispiel: el('button', { type: 'button', className: 'sekundaer' }, 'Löschen')
  * Strings werden als Text eingefügt, so lassen sich Kinder bedingt anhängen: `bearbeitbar && knopf`.
  */
-export function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  eigenschaften: Partial<HTMLElementTagNameMap[K]> = {},
-  ...kinder: Kind[]
-): HTMLElementTagNameMap[K] {
+export function el(tag, eigenschaften = {}, ...kinder) {
   const element = document.createElement(tag);
   Object.assign(element, eigenschaften);
   for (const kind of kinder) {
@@ -30,22 +27,14 @@ export function el<K extends keyof HTMLElementTagNameMap>(
 }
 
 /** Knopf mit Text, CSS-Klasse und Klick-Aktion (über addEventListener). */
-export function knopf(
-  text: string,
-  klasse: string,
-  aktion: () => void,
-): HTMLButtonElement {
+export function knopf(text, klasse, aktion) {
   const button = el('button', { type: 'button', className: klasse }, text);
   button.addEventListener('click', aktion);
   return button;
 }
 
 /** Auswahlliste aus (Wert, Text)-Paaren. */
-export function auswahl(
-  id: string,
-  optionen: { wert: string; text: string }[],
-  gewaehlt?: string,
-): HTMLSelectElement {
+export function auswahl(id, optionen, gewaehlt) {
   const select = el('select', { id, name: id });
   for (const option of optionen) {
     const selected = option.wert === gewaehlt;
@@ -55,10 +44,7 @@ export function auswahl(
 }
 
 /** Spaltentitel als data-label an jede Zelle hängen; das CSS zeigt ihn in der Kartenansicht. */
-export function spaltenBeschriften(
-  zeile: HTMLTableRowElement,
-  spalten: string[],
-): HTMLTableRowElement {
+export function spaltenBeschriften(zeile, spalten) {
   Array.from(zeile.cells).forEach((zelle, i) =>
     zelle.setAttribute('data-label', spalten[i] ?? ''),
   );
@@ -66,10 +52,7 @@ export function spaltenBeschriften(
 }
 
 /** Einfache Tabelle mit Kopfzeile; auf schmalen Bildschirmen als Karten (siehe style.css). */
-export function tabelle(
-  spalten: string[],
-  zeilen: HTMLTableRowElement[],
-): HTMLDivElement {
+export function tabelle(spalten, zeilen) {
   zeilen.forEach((zeile) => spaltenBeschriften(zeile, spalten));
   const kopf = el(
     'tr',
@@ -84,23 +67,23 @@ export function tabelle(
 }
 
 /** Tabellenzelle; Klasse "zahl" macht sie rechtsbündig. */
-export function zelle(klasse: string, ...inhalt: Kind[]): HTMLTableCellElement {
+export function zelle(klasse, ...inhalt) {
   return el('td', { className: klasse }, ...inhalt);
 }
 
 /** Meldungszeile setzen. art: '', 'erfolg', 'warnung', 'fehler' */
-export function zeigeMeldung(ziel: HTMLElement, text: string, art = ''): void {
+export function zeigeMeldung(ziel, text, art = '') {
   ziel.textContent = text;
   ziel.className = 'meldung ' + art;
 }
 
 /** Leere Meldungszeile, die Screenreader bei Änderungen vorlesen. */
-export function meldungsZeile(): HTMLParagraphElement {
+export function meldungsZeile() {
   return el('p', { className: 'meldung', role: 'status' });
 }
 
 /** Farbige Status-Marke, Farbe über die CSS-Klasse status-<status>. */
-export function statusMarke(status: AntragStatus): HTMLSpanElement {
+export function statusMarke(status) {
   return el(
     'span',
     { className: `status status-${status.toLowerCase()}` },
@@ -109,7 +92,7 @@ export function statusMarke(status: AntragStatus): HTMLSpanElement {
 }
 
 /** Lässt den Browser eine Datei speichern (CSV-Export). */
-export function dateiSpeichern(inhalt: Blob, dateiname: string): void {
+export function dateiSpeichern(inhalt, dateiname) {
   const url = URL.createObjectURL(inhalt);
   const link = el('a', { href: url, download: dateiname });
   document.body.append(link); // Firefox braucht den Link im Dokument
@@ -119,7 +102,7 @@ export function dateiSpeichern(inhalt: Blob, dateiname: string): void {
 }
 
 /** Auswahlliste der zwölf Monate mit deutschen Namen, Werte "1" bis "12". */
-export function monatAuswahl(id: string, gewaehlt: number): HTMLSelectElement {
+export function monatAuswahl(id, gewaehlt) {
   const monate = Array.from({ length: 12 }, (_, i) => ({
     wert: String(i + 1),
     text: monatOhneJahr(i + 1),
@@ -128,7 +111,7 @@ export function monatAuswahl(id: string, gewaehlt: number): HTMLSelectElement {
 }
 
 /** Zahlenfeld für das Jahr, vorbelegt. */
-export function jahrFeld(id: string, wert: number): HTMLInputElement {
+export function jahrFeld(id, wert) {
   return el('input', {
     id,
     name: id,
@@ -142,9 +125,7 @@ export function jahrFeld(id: string, wert: number): HTMLInputElement {
 }
 
 /** Status als Optionen für Auswahllisten, mit «Alle» als erster Option. */
-export function statusOptionen(
-  status: AntragStatus[],
-): { wert: string; text: string }[] {
+export function statusOptionen(status) {
   return [
     { wert: '', text: 'Alle Status' },
     ...status.map((s) => ({ wert: s, text: STATUS_TEXT[s] })),

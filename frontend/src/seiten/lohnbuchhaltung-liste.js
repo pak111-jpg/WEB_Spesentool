@@ -3,7 +3,7 @@
  * und sortierbar; CSV-Export (LB-1), Auszahlung des ganzen Monats (LB-5) und Auswertung pro
  * Kostenstelle (LB-4).
  */
-import * as api from '../api';
+import * as api from '../api.js';
 import {
   auswahl,
   dateiSpeichern,
@@ -17,23 +17,15 @@ import {
   tabelle,
   zeigeMeldung,
   zelle,
-} from '../dom';
-import { chf, monatName } from '../format';
-import { feld, pruefeFelder } from '../formular';
-import {
-  sortierbareTabelle,
-  type Spalte,
-} from '../komponenten/sortier-tabelle';
-import { summeTotal } from '../regeln';
-import {
-  STATUS,
-  type Antrag,
-  type AntragStatus,
-  type KostenstellenAuswertung,
-} from '../typen';
-import { ganzzahlZwischen } from '../validierung';
+} from '../dom.js';
+import { chf, monatName } from '../format.js';
+import { feld, pruefeFelder } from '../formular.js';
+import { sortierbareTabelle } from '../komponenten/sortier-tabelle.js';
+import { summeTotal } from '../regeln.js';
+import { STATUS } from '../typen.js';
+import { ganzzahlZwischen } from '../validierung.js';
 
-const SPALTEN: Spalte<Antrag>[] = [
+const SPALTEN = [
   {
     titel: 'Personalnr.',
     inhalt: (a) => a.mitarbeitende.personalnummer,
@@ -66,16 +58,17 @@ const SPALTEN: Spalte<Antrag>[] = [
   },
 ];
 
-interface Filter {
-  monat: HTMLSelectElement;
-  jahr: HTMLInputElement;
-  status: HTMLSelectElement;
-  liste: HTMLElement;
-  auswertung: HTMLElement;
-  meldung: HTMLElement;
-}
+/**
+ * @typedef {Object} Filter
+ * @property {HTMLSelectElement} monat
+ * @property {HTMLInputElement} jahr
+ * @property {HTMLSelectElement} status
+ * @property {HTMLElement} liste
+ * @property {HTMLElement} auswertung
+ * @property {HTMLElement} meldung
+ */
 
-function listeZeichnen(f: Filter, antraege: Antrag[]): void {
+function listeZeichnen(f, antraege) {
   const monat = monatName(Number(f.jahr.value), Number(f.monat.value));
   f.liste.replaceChildren(
     antraege.length === 0
@@ -94,10 +87,7 @@ function listeZeichnen(f: Filter, antraege: Antrag[]): void {
 }
 
 /** LB-4: Tabelle pro Kostenstelle mit Summenzeile. */
-function auswertungZeichnen(
-  f: Filter,
-  eintraege: KostenstellenAuswertung[],
-): void {
+function auswertungZeichnen(f, eintraege) {
   if (eintraege.length === 0) {
     f.auswertung.replaceChildren(
       el(
@@ -134,13 +124,13 @@ function auswertungZeichnen(
 }
 
 /** Lädt Liste und Auswertung für die aktuelle Auswahl neu (mit Ladeanzeige). */
-async function laden(f: Filter): Promise<void> {
+async function laden(f) {
   if (!pruefeFelder([[f.jahr, [ganzzahlZwischen(2000, 2100, 'Jahr')]]])) return;
   const jahr = Number(f.jahr.value);
   const monat = Number(f.monat.value);
   f.liste.replaceChildren(el('p', { className: 'leer' }, 'Wird geladen …'));
   try {
-    const status = (f.status.value || undefined) as AntragStatus | undefined;
+    const status = f.status.value || undefined;
     const [antraege, auswertung] = await Promise.all([
       api.lohnbuchhaltung.abrechnungen({ jahr, monat, status }),
       api.lohnbuchhaltung.auswertung(jahr, monat),
@@ -153,7 +143,7 @@ async function laden(f: Filter): Promise<void> {
   }
 }
 
-async function exportieren(f: Filter): Promise<void> {
+async function exportieren(f) {
   const jahr = Number(f.jahr.value);
   const monat = Number(f.monat.value);
   const dateiname = `spesen-${jahr}-${String(monat).padStart(2, '0')}.csv`;
@@ -169,10 +159,7 @@ async function exportieren(f: Filter): Promise<void> {
   }
 }
 
-async function ausbezahlen(
-  f: Filter,
-  knopfEl: HTMLButtonElement,
-): Promise<void> {
+async function ausbezahlen(f, knopfEl) {
   const jahr = Number(f.jahr.value);
   const monat = Number(f.monat.value);
   if (
@@ -197,7 +184,7 @@ async function ausbezahlen(
   }
 }
 
-function filterErstellen(): Filter {
+function filterErstellen() {
   // Standard: Vormonat, denn ausbezahlt wird am Monatsende mit dem Lohn
   const vormonat = new Date();
   vormonat.setDate(1);
@@ -213,7 +200,7 @@ function filterErstellen(): Filter {
   };
 }
 
-function filterFormular(f: Filter): HTMLFormElement {
+function filterFormular(f) {
   [f.monat, f.jahr, f.status].forEach((e) =>
     e.addEventListener('change', () => void laden(f)),
   );
@@ -228,8 +215,8 @@ function filterFormular(f: Filter): HTMLFormElement {
   return formular;
 }
 
-function aktionsKnoepfe(f: Filter): HTMLElement {
-  const ausbezahlenKnopf: HTMLButtonElement = knopf(
+function aktionsKnoepfe(f) {
+  const ausbezahlenKnopf = knopf(
     'Genehmigte als ausbezahlt markieren',
     '',
     () => void ausbezahlen(f, ausbezahlenKnopf),
@@ -243,7 +230,7 @@ function aktionsKnoepfe(f: Filter): HTMLElement {
 }
 
 /** Seite «Abrechnungen» der Lohnbuchhaltung. */
-export async function lohnbuchhaltungListeSeite(): Promise<HTMLElement> {
+export async function lohnbuchhaltungListeSeite() {
   const f = filterErstellen();
   const filter = filterFormular(f);
   await laden(f);

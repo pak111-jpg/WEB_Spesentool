@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AntragStatus, Kategorie, Rolle } from '../../generated/prisma/enums';
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class BelegDto {
   @ApiProperty({ example: 7 })
   id: number;
@@ -27,6 +28,7 @@ export class BelegDto {
   hochgeladenAm: Date;
 }
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class PositionDto {
   @ApiProperty({ example: 12 })
   id: number;
@@ -67,6 +69,7 @@ export class PositionDto {
   beleg: BelegDto | null;
 }
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class PersonKurzDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -81,6 +84,7 @@ export class PersonKurzDto {
   kostenstelle: string;
 }
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class AntragDto {
   @ApiProperty({ example: 3 })
   id: number;
@@ -170,6 +174,7 @@ export class StatusAenderungDto {
   begruendung: string | null;
 }
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class AntragDetailDto extends AntragDto {
   @ApiProperty({ type: [PositionDto] })
   positionen: PositionDto[];

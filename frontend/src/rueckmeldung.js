@@ -3,19 +3,21 @@
  * dabei ginge eine Meldung verloren. Darum merkt sich dieses Modul die Meldung, und der Router
  * zeigt sie oben auf der neu gezeichneten Seite an.
  */
-import { el } from './dom';
+import { el } from './dom.js';
 
-type Art = 'erfolg' | 'warnung' | 'fehler';
+/**
+ * @typedef {'erfolg' | 'warnung' | 'fehler'} Art
+ */
 
-let gemerkt: { text: string; art: Art } | null = null;
+let gemerkt = null;
 
 /** Meldung für die nächste angezeigte Seite merken. */
-export function merkeMeldung(text: string, art: Art = 'erfolg'): void {
+export function merkeMeldung(text, art = 'erfolg') {
   gemerkt = { text, art };
 }
 
 /** Die gemerkte Meldung als Element holen (nur einmal), sonst null. */
-export function gemerkteMeldung(): HTMLElement | null {
+export function gemerkteMeldung() {
   if (gemerkt === null) return null;
   const { text, art } = gemerkt;
   gemerkt = null;

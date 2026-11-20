@@ -10,13 +10,13 @@ export const chf = new Intl.NumberFormat('de-CH', {
 });
 
 /** "2026-11-05" oder ISO-Zeitstempel → "05.11.2026" (ohne Date, damit keine Zeitzonen-Verschiebung). */
-export function datumCH(iso: string): string {
+export function datumCH(iso) {
   const [jahr, monat, tag] = iso.slice(0, 10).split('-');
   return `${tag}.${monat}.${jahr}`;
 }
 
 /** ISO-Zeitstempel → "05.11.2026, 14:12", null → "-". */
-export function zeitpunktCH(iso: string | null): string {
+export function zeitpunktCH(iso) {
   if (!iso) return '-';
   return new Date(iso).toLocaleString('de-CH', {
     dateStyle: 'medium',
@@ -25,7 +25,7 @@ export function zeitpunktCH(iso: string | null): string {
 }
 
 /** (2026, 11) → "November 2026". */
-export function monatName(jahr: number, monat: number): string {
+export function monatName(jahr, monat) {
   return new Date(jahr, monat - 1, 1).toLocaleDateString('de-CH', {
     month: 'long',
     year: 'numeric',
@@ -33,17 +33,14 @@ export function monatName(jahr: number, monat: number): string {
 }
 
 /** Name eines Monats ohne Jahr: 1 → "Januar". */
-export function monatOhneJahr(monat: number): string {
+export function monatOhneJahr(monat) {
   return new Date(2000, monat - 1, 1).toLocaleDateString('de-CH', {
     month: 'long',
   });
 }
 
 /** Erster und letzter Tag eines Monats als YYYY-MM-DD, für min/max im Datumsfeld. */
-export function monatsGrenzen(
-  jahr: number,
-  monat: number,
-): { von: string; bis: string } {
+export function monatsGrenzen(jahr, monat) {
   const mm = String(monat).padStart(2, '0');
   const letzterTag = new Date(jahr, monat, 0).getDate();
   return {
@@ -53,11 +50,11 @@ export function monatsGrenzen(
 }
 
 /** Heutiges Datum als YYYY-MM-DD in Ortszeit. */
-export function heuteIso(): string {
+export function heuteIso() {
   return new Date().toLocaleDateString('sv-SE');
 }
 
 /** Sortierschlüssel für Jahr und Monat: (2026, 3) → 202603. */
-export function monatSchluessel(jahr: number, monat: number): number {
+export function monatSchluessel(jahr, monat) {
   return jahr * 100 + monat;
 }

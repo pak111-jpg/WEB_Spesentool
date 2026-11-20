@@ -4,6 +4,7 @@ import { BelegeModule } from '../belege/belege.module';
 import { PositionenController } from './positionen.controller';
 import { PositionenService } from './positionen.service';
 
+/** NestJS-Modul: Positionen eines Antrags. */
 @Module({
   imports: [AntraegeModule, BelegeModule],
   controllers: [PositionenController],

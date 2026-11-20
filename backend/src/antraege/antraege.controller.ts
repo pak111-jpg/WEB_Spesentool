@@ -31,6 +31,7 @@ import { AntragDetailDto, AntragDto } from './dto/antrag.dto';
 import { CreateAntragDto } from './dto/create-antrag.dto';
 import { EinreichenFehlerDto } from './dto/einreichen-fehler.dto';
 
+/** REST-Endpunkte: Spesenanträge der Mitarbeitenden (Details in Swagger unter /api). */
 @ApiTags('antraege')
 @Auth(Rolle.MITARBEITENDE)
 @Controller('antraege')

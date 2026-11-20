@@ -79,17 +79,16 @@ Detailansicht zeigt jeden Schritt mit Zeitpunkt, Person und Rolle.
 
 | Bereich | Technik |
 | ------- | ------- |
-| Frontend | HTML, CSS und **TypeScript** (wird zu JavaScript übersetzt) als ES-Module, **ohne JavaScript- oder CSS-Framework**. Die Oberfläche entsteht mit `document.createElement`, die Navigation mit einem eigenen Hash-Router. |
-| Build-Werkzeug Frontend | Vite 8 (Entwicklungsserver und Übersetzung von TypeScript) |
-| Backend | Node.js mit NestJS 12 (REST-API), TypeScript, Validierung mit class-validator, OpenAPI/Swagger |
+| Frontend | **HTML, CSS und JavaScript** (ES-Module mit `import`/`export`), **ohne JavaScript- oder CSS-Framework** und ohne Übersetzungsschritt: Der Browser führt den Code direkt aus. Die Oberfläche entsteht mit `document.createElement`, die Navigation mit einem eigenen Hash-Router. |
+| Entwicklungsserver Frontend | Vite 8, liefert die Dateien nur aus (Hot Reload). Das Frontend läuft auch mit jedem anderen Webserver, z. B. `python -m http.server` im Ordner `frontend`. |
+| Backend | Node.js mit NestJS 12 (REST-API) in TypeScript, Validierung mit class-validator, OpenAPI/Swagger. Für ein eigenes Backend ist die Technologie frei (Pflichtabgabe A03). |
 | Datenbank | MariaDB 11 (in Docker), Zugriff mit Prisma 7 (ORM und Migrationen) |
 | Anmeldung | JWT (Bearer-Token), Passwörter mit bcrypt gehasht, Rollen werden im Backend geprüft |
 | Tests | Jest (Unit- und End-to-End-Tests über die REST-API), Supertest |
-| Codequalität | ESLint (mit Regeln aus dem Bewertungsraster, siehe Nachweis), Prettier, TypeScript im Modus `strict` |
+| Codequalität | ESLint (mit Regeln aus dem Bewertungsraster, siehe Nachweis), Prettier; im Backend zusätzlich TypeScript im Modus `strict` |
 
-**TypeScript statt JavaScript:** TypeScript ist JavaScript mit Typangaben; der Browser führt das übersetzte
-JavaScript aus. Wir verwenden es, damit Frontend und Backend dieselbe Sprache haben und Fehler schon beim
-Übersetzen auffallen. Es ist kein Framework. ⚠️ *Vor der Abgabe mit der Lehrperson bestätigen (A03).*
+Die Datenstrukturen des Frontends sind mit JSDoc-Kommentaren (`@typedef`) in `frontend/src/typen.js`
+beschrieben; sie dienen der Dokumentation und der Autovervollständigung im Editor.
 
 ## Daten und Status
 
@@ -175,8 +174,8 @@ WEB_Spesentool/
 │   ├── src/freigabe        Prüfen und Entscheiden (Vorgesetzte)
 │   ├── src/lohnbuchhaltung Export, Auszahlung, Auswertung
 │   └── test/               End-to-End-Test über die REST-API
-└── frontend/               Browser-Oberfläche, Details in frontend/README.md
-    ├── index.html          Grundgerüst: header, main, footer; lädt src/main.ts als Modul
+└── frontend/               Browser-Oberfläche (JavaScript), Details in frontend/README.md
+    ├── index.html          Grundgerüst: header, main, footer; lädt src/main.js als Modul
     └── src/                ES-Module, siehe Tabelle
 ```
 
@@ -186,16 +185,16 @@ Jedes Modul hat eine Aufgabe. Datenzugriff, Prozesslogik und Darstellung sind ge
 
 | Schicht | Modul | Verantwortung |
 | ------- | ----- | ------------- |
-| Daten | `api.ts` | einzige Stelle mit `fetch`: Token mitschicken, Fehler als `ApiFehler` melden |
-| Daten | `session.ts` | Anmeldung im `localStorage` speichern |
-| Konstanten | `typen.ts` | Typen der Daten und alle festen Werte (`STATUS`, `ROLLE`, `KATEGORIE`, Belegtypen, Frist) |
-| Logik | `regeln.ts` | welche Aktion in welchem Status möglich ist, Vollständigkeitsprüfung, Summen |
-| Logik | `validierung.ts` | Validierungsregeln (Pflicht, Zahl > 0, Datum im Monat, E-Mail, Beleg) |
-| Logik | `liste.ts` | Sortieren und kombiniertes Filtern |
-| Darstellung | `dom.ts`, `format.ts`, `texte.ts` | Elemente bauen, CHF und Daten formatieren, Anzeigetexte |
-| Darstellung | `formular.ts`, `rueckmeldung.ts` | Felder mit Fehlermeldung beim Feld, Bestätigung nach jeder Aktion |
+| Daten | `api.js` | einzige Stelle mit `fetch`: Token mitschicken, Fehler als `ApiFehler` melden |
+| Daten | `session.js` | Anmeldung im `localStorage` speichern |
+| Konstanten | `typen.js` | alle festen Werte (`STATUS`, `ROLLE`, `KATEGORIE`, Belegtypen, Frist, mit `Object.freeze` unveränderlich) und die Datenstrukturen als JSDoc |
+| Logik | `regeln.js` | welche Aktion in welchem Status möglich ist, Vollständigkeitsprüfung, Summen |
+| Logik | `validierung.js` | Validierungsregeln (Pflicht, Zahl > 0, Datum im Monat, E-Mail, Beleg) |
+| Logik | `liste.js` | Sortieren und kombiniertes Filtern |
+| Darstellung | `dom.js`, `format.js`, `texte.js` | Elemente bauen, CHF und Daten formatieren, Anzeigetexte |
+| Darstellung | `formular.js`, `rueckmeldung.js` | Felder mit Fehlermeldung beim Feld, Bestätigung nach jeder Aktion |
 | Darstellung | `komponenten/*` | Kopfzeile, Antragsansicht mit Verlauf, sortierbare Tabelle, Beleg-Dialog, Positionsformular |
-| Ablauf | `router.ts`, `main.ts` | Hash-Router mit Rollenprüfung, Lade- und Fehlerzustand |
+| Ablauf | `router.js`, `main.js` | Hash-Router mit Rollenprüfung, Lade- und Fehlerzustand |
 | Seiten | `seiten/*` | eine Funktion pro Seite: Daten über `api` laden, Komponenten zusammensetzen |
 
 ```mermaid
@@ -209,8 +208,8 @@ flowchart LR
     regeln & validierung --> typen
 ```
 
-Ablauf einer Aktion: Eine Seite prüft die Eingaben mit `validierung.ts` und zeigt Fehler beim Feld. Danach ruft
-sie eine Funktion aus `api.ts` auf, merkt sich die Bestätigung (`rueckmeldung.ts`) und lässt den Router die
+Ablauf einer Aktion: Eine Seite prüft die Eingaben mit `validierung.js` und zeigt Fehler beim Feld. Danach ruft
+sie eine Funktion aus `api.js` auf, merkt sich die Bestätigung (`rueckmeldung.js`) und lässt den Router die
 Seite neu laden. Im Backend prüft `statuswechsel.ts` jeden Statuswechsel gegen `statusregeln.ts` und schreibt
 ihn im Verlauf.
 
@@ -258,8 +257,8 @@ Die Tests brauchen Node 24.9 oder neuer; der End-to-End-Test braucht die laufend
 | Person | Teile |
 | ------ | ----- |
 | Parwar Habasch | **Backend:** REST-API mit NestJS, Datenmodell und Migrationen (Prisma, MariaDB), Anmeldung mit JWT und Rollen, Statusregeln und Verlauf, Export und Auswertung, Demo-Daten, automatisierte Tests |
-| Felix Stalder | **Frontend:** Oberfläche mit HTML, CSS und TypeScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
-| Pakierthan Pakeerathan | **Frontend:** Oberfläche mit HTML, CSS und TypeScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
+| Felix Stalder | **Frontend:** Oberfläche mit HTML, CSS und JavaScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
+| Pakierthan Pakeerathan | **Frontend:** Oberfläche mit HTML, CSS und JavaScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
 
 Alle drei kennen den ganzen Code und können jeden Teil erklären (Erklärbarkeitsvorbehalt).
 
@@ -286,7 +285,7 @@ jedes Gruppenmitglied muss den Code ohne KI erklären und anpassen können.
 | ------- | -------------------------------- | ------------------------------ |
 | HTML | Überarbeitung (Claude, Anthropic): Meta-Angaben und Favicon in `index.html`, semantische Struktur der Seiten (Überschriften, Labels, `time`, `nav`) | Nu Html Checker auf allen 7 Seiten: 0 Fehler; Prüfskript für ein `main`, ein `h1`, Labels |
 | CSS | Überarbeitung (Claude): Kartenansicht für Tabellen auf schmalen Bildschirmen, sichtbarer Fokus, Fehler beim Feld, Ladeanzeige, Entfernen von `!important` | Screenshots bei 375 px und 1280 px, Messung der Seitenbreite, Lighthouse, Suche nach verbotenen Mustern |
-| JavaScript / TypeScript | Erstversion des Frontends: ⚠️ *Gruppe ergänzen*. Überarbeitung (Claude): Aufteilung in Module (Regeln, Validierung, Liste, Rückmeldung), Funktionen unter 40 Zeilen, Sortierung und Filter, Verlauf, Benachrichtigung | `tsc --strict`, ESLint mit den Regeln aus dem Raster, Prozessdurchlauf mit allen Rollen und Tastaturtest im Browser (Playwright) |
+| JavaScript | Erstversion des Frontends (damals TypeScript): ⚠️ *Gruppe ergänzen*. Überarbeitung (Claude): Aufteilung in Module (Regeln, Validierung, Liste, Rückmeldung), Funktionen unter 40 Zeilen, Sortierung und Filter, Verlauf, Benachrichtigung; Umstellung des Frontends von TypeScript auf JavaScript (Typangaben entfernt, Datenstrukturen als JSDoc) | ESLint mit den Regeln aus dem Raster (inkl. unbekannte und unbenutzte Variablen), Prozessdurchlauf mit allen Rollen, Stichproben und Tastaturtest im Browser (Playwright), Test ohne Vite mit einfachem Webserver |
 | Daten | Überarbeitung (Claude): Tabelle `StatusAenderung` mit Migration, Demo-Daten mit 14 Anträgen und Musterbelegen | Seed prüft jeden Schritt gegen das Zustandsdiagramm; End-to-End-Test |
 | Backend | Erstversion mit KI erstellt (Commit `8b0920b`, Co-Autor Claude; Prisma-Skills für KI-Assistenten in `backend/.agents`, `.claude`, `.windsurf`). Überarbeitung (Claude): zentrale Statusregeln, atomarer Statuswechsel mit Verlauf, Sichtbarkeit nach Rolle, Tests | 28 Unit-Tests und 4 End-to-End-Tests, ESLint, `tsc` |
 | Dokumentation | README, `docs/user-stories.md` und `docs/zustandsdiagramm.md` mit KI überarbeitet, auf Grundlage unserer DTR-II-Dokumente | gegen Bewertungsraster und DTR-II-PDFs abgeglichen |
@@ -306,15 +305,15 @@ Alle Bibliotheken werden über npm installiert; die Lizenzen stehen in den Paket
 | [class-validator](https://github.com/typestack/class-validator), [class-transformer](https://github.com/typestack/class-transformer) | Validierung der Anfragen | MIT |
 | [swagger-ui-express](https://github.com/scottie1984/swagger-ui-express) | API-Dokumentation | MIT |
 | [RxJS](https://rxjs.dev), [reflect-metadata](https://github.com/rbuckton/reflect-metadata) | von NestJS benötigt | Apache-2.0 |
-| [Vite](https://vite.dev) 8 | Entwicklungsserver und Build des Frontends | MIT |
-| [TypeScript](https://www.typescriptlang.org) 6 | Sprache in Frontend und Backend | Apache-2.0 |
+| [Vite](https://vite.dev) 8 | Entwicklungsserver des Frontends | MIT |
+| [TypeScript](https://www.typescriptlang.org) 6 | Sprache des Backends | Apache-2.0 |
 | [Jest](https://jestjs.io), [Supertest](https://github.com/forwardemail/supertest), [SWC](https://swc.rs) | Tests | MIT, MIT, Apache-2.0 |
-| [ESLint](https://eslint.org), [typescript-eslint](https://typescript-eslint.io), [Prettier](https://prettier.io) | Codequalität | MIT |
+| [ESLint](https://eslint.org), [typescript-eslint](https://typescript-eslint.io) (nur Backend), [Prettier](https://prettier.io) | Codequalität | MIT |
 | [concurrently](https://github.com/open-cli-tools/concurrently) | startet Backend und Frontend zusammen | MIT |
 | [Prisma Agent Skills](https://github.com/prisma/skills) | Anleitungen für KI-Assistenten (`backend/.agents` u. a.), nicht Teil der Anwendung | MIT |
 
 **Bilder, Icons, Schriften:** keine fremden. Schrift ist die Systemschrift (`system-ui`), das Favicon
-(`frontend/public/favicon.svg`) und die Musterbelege der Demo-Daten sind selbst erstellt. **Fremder Code:**
+(`frontend/favicon.svg`) und die Musterbelege der Demo-Daten sind selbst erstellt. **Fremder Code:**
 ausser den Bibliotheken oben und dem von Prisma generierten Client keiner.
 
 ## Bonus
@@ -337,7 +336,7 @@ automatisch: `npm --prefix frontend run lint` meldet 0 Probleme (Regeln in `fron
 | G1.1 | W3C-Validator: 0 Fehler auf allen Seiten | Ja | Alle 7 Seiten (gerendertes HTML) mit dem Nu Html Checker (vnu.jar, gleiche Software wie validator.w3.org): 0 Fehler, 0 Warnungen → [`G1.1-w3c/`](docs/nachweise/G1.1-w3c) |
 | G1.2 | genau ein `main` und ein `h1`, keine Ebene übersprungen | Ja | `main` steht einmal in `index.html`; jede Seite hat genau ein `h1`, darunter nur `h2` (geprüft auf allen 7 Seiten) |
 | G1.3 | mind. 4 semantische Elemente | Ja | `header`, `nav`, `main`, `section`, `form`, `table`, `footer`, dazu `dl`, `ol`, `time`, `dialog` |
-| G1.4 | jedes Feld mit `label` und passendem `type` | Ja | alle Felder über `feld()` in `formular.ts` mit `label for`; Typen `email`, `password`, `date`, `number`, `text`, `checkbox`, `file` (dieses im `label`); geprüft auf allen Seiten |
+| G1.4 | jedes Feld mit `label` und passendem `type` | Ja | alle Felder über `feld()` in `formular.js` mit `label for`; Typen `email`, `password`, `date`, `number`, `text`, `checkbox`, `file` (dieses im `label`); geprüft auf allen Seiten |
 | G1.5 | klickbar nur `button` oder `a` | Ja | Klick-Ereignisse nur über `knopf()` (erzeugt `button`) und auf den Knopf «Abbrechen»; Suche nach `addEventListener('click'` ergibt nur diese 2 Stellen |
 | G2.1 | nur externe Stylesheets, `style=` 0 Treffer | Ja | Suche nach `style=` in `index.html` und `src`: 0 Treffer; einziges Stylesheet `src/style.css` |
 | G2.2 | mind. 5 Custom Properties | Ja | 17 Custom Properties in `:root` (Farben, Fokus, Radius, Abstand), alle mit `var()` verwendet |
@@ -351,14 +350,14 @@ automatisch: `npm --prefix frontend run lint` meldet 0 Probleme (Regeln in `fron
 | G3.5 | Listen und Tabellen bei 375 px lesbar | Ja | unter 640 px Kartenansicht mit Spaltentitel pro Wert, Sortier-Knöpfe als Leiste → `G3-375px/02-…`, `04-…`, `06-…` |
 | G4.1 | Konsole ohne Fehler nach vollständigem Prozessdurchlauf | Ja | Durchlauf mit allen Rollen in Chrome: 0 Fehler, 0 Warnungen → [`G4.1-konsole.png`](docs/nachweise/G4.1-konsole.png) |
 | G4.2 | nur `const`/`let`, keine Inline-Handler | Ja | ESLint `no-var`, `prefer-const`; Ereignisse nur mit `addEventListener` (ESLint verbietet `on…=`-Zuweisungen); Suche nach `var ` und `onclick`: 0 Treffer |
-| G4.3 | nur `===` und `!==` | Ja | ESLint `eqeqeq: always`, `npm run lint`: 0 Probleme |
-| G4.4 | keine Funktion länger als 40 Zeilen | Ja | ESLint `max-lines-per-function: 40` (inkl. Leer- und Kommentarzeilen), `npm run lint`: 0 Probleme |
-| G4.5 | Ausgabe mit `textContent`/`createElement`, kein `innerHTML` | Ja | alle Elemente über `el()` in `dom.ts` (`createElement`, Text mit `append`); ESLint verbietet `innerHTML`; Suche nach `innerHTML`: 0 Treffer |
+| G4.3 | nur `===` und `!==` | Ja | ESLint `eqeqeq: always` in Frontend und Backend, `npm run lint`: 0 Probleme |
+| G4.4 | keine Funktion länger als 40 Zeilen | Ja | ESLint `max-lines-per-function: 40` (inkl. Leer- und Kommentarzeilen) in Frontend und Backend, `npm run lint`: 0 Probleme |
+| G4.5 | Ausgabe mit `textContent`/`createElement`, kein `innerHTML` | Ja | alle Elemente über `el()` in `dom.js` (`createElement`, Text mit `append`); ESLint verbietet `innerHTML`; Suche nach `innerHTML`: 0 Treffer |
 | G5.1 | Lighthouse Accessibility Startseite ≥ 80 | Ja | Accessibility **100** (Best Practices 100) → [`G5.1-lighthouse-startseite.png`](docs/nachweise/G5.1-lighthouse-startseite.png) |
 | G5.2 | Kernprozess mit Tastatur bedienbar | Ja | ganzer Prozess (korrigieren, einreichen, genehmigen, auszahlen) nur mit Tab, Enter und Tippen → [`G5.2-tastatur-protokoll.txt`](docs/nachweise/G5.2-tastatur-protokoll.txt) |
 | G5.3 | Fokus jederzeit sichtbar | Ja | `:focus-visible` mit 3 px Rahmen in Markenfarbe, in der Kopfzeile weiss; auch für das Upload-Feld → `G5.3-fokus-*.png` |
 | G5.4 | informative Bilder/Icons mit `alt` oder `aria-label` | Ja | Beleg-Bild mit `alt`, Dialog mit `aria-label`, Navigation mit `aria-label`; Sortier-Pfeile sind Dekoration, die Richtung steht in `aria-sort` |
-| G5.5 | sichtbare Rückmeldung nach jeder Aktion | Ja | Bestätigung oben auf der Seite nach jeder Aktion (`rueckmeldung.ts`), Fehler beim Feld oder in der Meldungszeile, Ladeanzeige → [`ablauf/`](docs/nachweise/ablauf) |
+| G5.5 | sichtbare Rückmeldung nach jeder Aktion | Ja | Bestätigung oben auf der Seite nach jeder Aktion (`rueckmeldung.js`), Fehler beim Feld oder in der Meldungszeile, Ladeanzeige → [`ablauf/`](docs/nachweise/ablauf) |
 
 ## Datenschutz
 

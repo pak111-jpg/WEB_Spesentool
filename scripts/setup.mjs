@@ -1,6 +1,6 @@
 /**
  * Ersteinrichtung in einem Schritt (läuft unter Windows, macOS und Linux):
- * .env-Dateien anlegen, Pakete installieren, Datenbank starten, Tabellen anlegen, Demo-Daten laden.
+ * backend/.env anlegen, Pakete installieren, Datenbank starten, Tabellen anlegen, Demo-Daten laden.
  * Aufruf im Hauptordner: npm run setup
  */
 import { execSync } from 'node:child_process';
@@ -15,11 +15,9 @@ function warten(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
-for (const ordner of ['backend', 'frontend']) {
-  if (!existsSync(`${ordner}/.env`)) {
-    copyFileSync(`${ordner}/.env.example`, `${ordner}/.env`);
-    console.log(`✔ ${ordner}/.env aus .env.example angelegt`);
-  }
+if (!existsSync('backend/.env')) {
+  copyFileSync('backend/.env.example', 'backend/.env');
+  console.log('✔ backend/.env aus .env.example angelegt');
 }
 
 schritt('Pakete Backend installieren', 'npm install', 'backend');

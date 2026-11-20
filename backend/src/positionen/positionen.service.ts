@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BelegeService } from '../belege/belege.service';
 import { CreatePositionDto, UpdatePositionDto } from './dto/position-input.dto';
 
+/** Geschäftslogik: Positionen eines Antrags. */
 @Injectable()
 export class PositionenService {
   private readonly kilometerpauschale: number;

@@ -40,6 +40,7 @@ class KilometerpauschaleDto {
   chfProKilometer: number;
 }
 
+/** REST-Endpunkte: Positionen eines Antrags (Details in Swagger unter /api). */
 @ApiTags('positionen')
 @Auth(Rolle.MITARBEITENDE)
 @Controller()

@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '../generated/prisma/client';
 
+/** Prisma-Client mit MariaDB-Adapter; wird in alle Services injiziert. */
 @Injectable()
 export class PrismaService
   extends PrismaClient

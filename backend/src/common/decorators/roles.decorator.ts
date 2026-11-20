@@ -1,6 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
 import { Rolle } from '../../generated/prisma/enums';
 
+/** Schlüssel, unter dem @Rollen() die erlaubten Rollen am Endpunkt ablegt. */
 export const ROLES_KEY = 'rollen';
 
 /** Beschränkt einen Endpunkt auf die angegebenen Rollen. */

@@ -8,6 +8,7 @@ export interface AuthUser {
   rolle: Rolle;
 }
 
+/** Parameter-Decorator: liefert die angemeldete Person aus dem JWT. */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): AuthUser => {
     const request = ctx.switchToHttp().getRequest<{ user: AuthUser }>();

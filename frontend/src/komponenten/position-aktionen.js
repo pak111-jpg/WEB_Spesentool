@@ -2,20 +2,15 @@
  * Knöpfe pro Position, solange die Abrechnung bearbeitbar ist:
  * Bearbeiten, Beleg hochladen oder ersetzen (MA-1), Beleg entfernen, Position löschen.
  */
-import * as api from '../api';
-import { el, knopf, zeigeMeldung } from '../dom';
-import { merkeMeldung } from '../rueckmeldung';
-import { neuLaden } from '../router';
-import type { Position } from '../typen';
-import { pruefeBeleg } from '../validierung';
-import type { Aktionen } from './antrag-ansicht';
+import * as api from '../api.js';
+import { el, knopf, zeigeMeldung } from '../dom.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { neuLaden } from '../router.js';
+
+import { pruefeBeleg } from '../validierung.js';
 
 /** Führt eine Aktion aus, merkt sich die Bestätigung und zeichnet die Seite neu. */
-async function ausfuehren(
-  aktion: () => Promise<unknown>,
-  bestaetigung: string,
-  meldung: HTMLElement,
-): Promise<void> {
+async function ausfuehren(aktion, bestaetigung, meldung) {
   try {
     await aktion();
     merkeMeldung(bestaetigung);
@@ -30,7 +25,7 @@ async function ausfuehren(
  * aus wie ein Knopf. Am Handy bietet die Dateiauswahl auch die Kamera an. Ein falscher Dateityp
  * wird vor dem Hochladen abgefangen und direkt beim Knopf gemeldet.
  */
-function belegHochladen(position: Position, meldung: HTMLElement): Node[] {
+function belegHochladen(position, meldung) {
   const id = `beleg-${position.id}`;
   const fehler = el('span', { id: `${id}-fehler`, className: 'feld-fehler' });
   const datei = el('input', {
@@ -58,14 +53,9 @@ function belegHochladen(position: Position, meldung: HTMLElement): Node[] {
 }
 
 /** Liefert die Aktionen für die Positionstabelle; `bearbeiten` füllt das Formular. */
-export function positionAktionen(
-  bearbeiten: (position: Position) => void,
-  meldung: HTMLElement,
-): Aktionen {
+export function positionAktionen(bearbeiten, meldung) {
   return (position) => {
-    const knoepfe: Node[] = [
-      knopf('Bearbeiten', 'leise', () => bearbeiten(position)),
-    ];
+    const knoepfe = [knopf('Bearbeiten', 'leise', () => bearbeiten(position))];
     knoepfe.push(...belegHochladen(position, meldung));
     const beleg = position.beleg;
     if (beleg) {

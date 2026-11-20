@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto, UserDto } from './dto/user.dto';
 
+/** Geschäftslogik: Anmeldung mit JWT. */
 @Injectable()
 export class AuthService {
   constructor(
@@ -41,6 +42,7 @@ export class AuthService {
   }
 }
 
+/** Person aus der Datenbank → UserDto (ohne Passwort-Hash). */
 export function toUserDto(user: User): UserDto {
   return {
     id: user.id,

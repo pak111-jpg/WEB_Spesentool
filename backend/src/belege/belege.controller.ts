@@ -40,6 +40,7 @@ import {
   type HochgeladeneDatei,
 } from './belege.service';
 
+/** REST-Endpunkte: Belegdateien (Details in Swagger unter /api). */
 @ApiTags('belege')
 @Controller()
 export class BelegeController {
