@@ -293,6 +293,23 @@ export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDecimalFilter<$PrismaModel>
 }
 
+export type EnumAntragStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.AntragStatus | Prisma.EnumAntragStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.AntragStatus[] | null
+  notIn?: $Enums.AntragStatus[] | null
+  not?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel> | $Enums.AntragStatus | null
+}
+
+export type EnumAntragStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AntragStatus | Prisma.EnumAntragStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.AntragStatus[] | null
+  notIn?: $Enums.AntragStatus[] | null
+  not?: Prisma.NestedEnumAntragStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.AntragStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel>
+}
+
 export type NestedIntFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -588,6 +605,23 @@ export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedDecimalFilter<$PrismaModel>
   _min?: Prisma.NestedDecimalFilter<$PrismaModel>
   _max?: Prisma.NestedDecimalFilter<$PrismaModel>
+}
+
+export type NestedEnumAntragStatusNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.AntragStatus | Prisma.EnumAntragStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.AntragStatus[] | null
+  notIn?: $Enums.AntragStatus[] | null
+  not?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel> | $Enums.AntragStatus | null
+}
+
+export type NestedEnumAntragStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AntragStatus | Prisma.EnumAntragStatusFieldRefInput<$PrismaModel> | null
+  in?: $Enums.AntragStatus[] | null
+  notIn?: $Enums.AntragStatus[] | null
+  not?: Prisma.NestedEnumAntragStatusNullableWithAggregatesFilter<$PrismaModel> | $Enums.AntragStatus | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAntragStatusNullableFilter<$PrismaModel>
 }
 
 

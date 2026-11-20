@@ -20,7 +20,7 @@ import type {
   User,
 } from './typen';
 
-// Adresse aus .env (VITE_API_URL), sonst der Standard des Backends
+/** Adresse des Backends aus .env (VITE_API_URL), sonst der Standard http://localhost:3000. */
 export const API_URL: string =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   'http://localhost:3000';
@@ -50,42 +50,53 @@ interface Optionen {
   query?: Record<string, string | number | undefined>;
 }
 
+/** Adresse mit Query-Parametern; leere Werte werden weggelassen. */
+function urlBauen(pfad: string, query: Optionen['query'] = {}): URL {
+  const url = new URL(pfad, API_URL);
+  for (const [name, wert] of Object.entries(query)) {
+    if (wert !== undefined && wert !== '') {
+      url.searchParams.set(name, String(wert));
+    }
+  }
+  return url;
+}
+
+/** Token der Session und Content-Type für JSON setzen. */
+function headersBauen(optionen: Optionen): Headers {
+  const headers = new Headers();
+  const session = aktuelleSession();
+  if (session) headers.set('Authorization', `Bearer ${session.accessToken}`);
+  if (optionen.body !== undefined) {
+    headers.set('Content-Type', 'application/json');
+  }
+  return headers;
+}
+
+/** fetch mit verständlicher Meldung, wenn gar keine Antwort kommt (Backend aus, kein Netz). */
+async function senden(url: URL, optionen: Optionen): Promise<Response> {
+  const body =
+    optionen.formData ??
+    (optionen.body !== undefined ? JSON.stringify(optionen.body) : undefined);
+  try {
+    return await fetch(url, {
+      method: optionen.methode ?? 'GET',
+      headers: headersBauen(optionen),
+      body,
+    });
+  } catch {
+    throw new ApiFehler(
+      0,
+      `Das Backend ist nicht erreichbar. Läuft die API auf ${API_URL}? Bitte später erneut versuchen.`,
+    );
+  }
+}
+
 /** Baut die Anfrage, schickt sie ab und wertet die Antwort aus. */
 async function anfrage(
   pfad: string,
   optionen: Optionen = {},
 ): Promise<Response> {
-  const url = new URL(pfad, API_URL);
-  for (const [name, wert] of Object.entries(optionen.query ?? {})) {
-    if (wert !== undefined && wert !== '')
-      url.searchParams.set(name, String(wert));
-  }
-
-  const headers = new Headers();
-  const session = aktuelleSession();
-  if (session) headers.set('Authorization', `Bearer ${session.accessToken}`);
-  if (optionen.body !== undefined)
-    headers.set('Content-Type', 'application/json');
-
-  let antwort: Response;
-  try {
-    antwort = await fetch(url, {
-      method: optionen.methode ?? 'GET',
-      headers,
-      body:
-        optionen.formData ??
-        (optionen.body !== undefined
-          ? JSON.stringify(optionen.body)
-          : undefined),
-    });
-  } catch {
-    // fetch wirft nur, wenn gar keine Antwort kam (Backend aus, kein Netz, CORS)
-    throw new ApiFehler(
-      0,
-      `Backend nicht erreichbar. Läuft die API auf ${API_URL}?`,
-    );
-  }
-
+  const antwort = await senden(urlBauen(pfad, optionen.query), optionen);
   if (antwort.ok) return antwort;
 
   // Token abgelaufen oder ungültig: Session löschen und zur Anmeldung
@@ -131,6 +142,7 @@ async function blob(pfad: string, optionen?: Optionen): Promise<Blob> {
 }
 
 // ---------- src/auth ----------
+/** Anmeldung (src/auth). */
 export const auth = {
   login: (daten: LoginDaten) =>
     json<LoginAntwort>('/auth/login', { methode: 'POST', body: daten }),
@@ -138,6 +150,7 @@ export const auth = {
 };
 
 // ---------- src/antraege (Rolle MITARBEITENDE) ----------
+/** Eigene Anträge der Mitarbeitenden (src/antraege). */
 export const antraege = {
   meine: () => json<Antrag[]>('/antraege'),
   einer: (id: number) => json<AntragDetail>(`/antraege/${id}`),
@@ -150,6 +163,7 @@ export const antraege = {
 };
 
 // ---------- src/positionen (Rolle MITARBEITENDE) ----------
+/** Positionen eines Antrags (src/positionen). */
 export const positionen = {
   kilometerpauschale: () =>
     json<{ chfProKilometer: number }>('/positionen/kilometerpauschale'),
@@ -165,6 +179,7 @@ export const positionen = {
 };
 
 // ---------- src/belege ----------
+/** Belegdateien hoch- und herunterladen (src/belege). */
 export const belege = {
   hochladen: (positionId: number, datei: File) => {
     const formData = new FormData();
@@ -179,6 +194,7 @@ export const belege = {
 };
 
 // ---------- src/freigabe (Rolle VORGESETZTE) ----------
+/** Prüfen und Entscheiden durch Vorgesetzte (src/freigabe). */
 export const freigabe = {
   offene: () => json<OffenerAntrag[]>('/freigabe/offen'),
   team: (status?: AntragStatus) =>
@@ -201,6 +217,7 @@ export const freigabe = {
 };
 
 // ---------- src/lohnbuchhaltung (Rolle LOHNBUCHHALTUNG) ----------
+/** Export, Auszahlung und Auswertung (src/lohnbuchhaltung). */
 export const lohnbuchhaltung = {
   abrechnungen: (filter: {
     jahr?: number;

@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   antragInclude,
   AntragMitPositionen,
@@ -10,6 +6,9 @@ import {
   toAntragDto,
 } from '../antraege/antraege.mapper';
 import { AntragDetailDto, AntragDto } from '../antraege/dto/antrag.dto';
+import { SICHTBAR_FUER_VORGESETZTE } from '../antraege/statusregeln';
+import { statusWechseln } from '../antraege/statuswechsel';
+import { AuthUser } from '../common/decorators/current-user.decorator';
 import { AntragStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 import { OffenerAntragDto } from './dto/freigabe.dto';
@@ -50,13 +49,22 @@ export class FreigabeService {
       .filter((antrag) => !nurUeberfaellig || antrag.ueberfaellig);
   }
 
-  /** Alle Anträge des Teams (auch entschiedene), optional nach Status gefiltert. */
+  /**
+   * Alle eingereichten Anträge des Teams (auch entschiedene), optional nach Status gefiltert.
+   * Entwürfe (ERFASST) sieht die vorgesetzte Person nicht, sie sind noch privat.
+   */
   async team(
     vorgesetzteId: number,
     status?: AntragStatus,
   ): Promise<AntragDto[]> {
+    if (status && !SICHTBAR_FUER_VORGESETZTE.includes(status)) {
+      return [];
+    }
     const antraege = await this.prisma.spesenantrag.findMany({
-      where: { mitarbeitende: { vorgesetzteId }, status },
+      where: {
+        mitarbeitende: { vorgesetzteId },
+        status: status ?? { in: [...SICHTBAR_FUER_VORGESETZTE] },
+      },
       include: antragInclude,
       orderBy: [
         { jahr: 'desc' },
@@ -67,6 +75,7 @@ export class FreigabeService {
     return antraege.map(toAntragDto);
   }
 
+  /** VG-2: Antrag des eigenen Teams mit Positionen, Belegen und Verlauf. */
   async einer(
     vorgesetzteId: number,
     antragId: number,
@@ -77,26 +86,18 @@ export class FreigabeService {
   }
 
   /** VG-2: EINGEREICHT → GENEHMIGT. Danach ist der Antrag nicht mehr veränderbar. */
-  async genehmigen(
-    vorgesetzteId: number,
-    antragId: number,
-  ): Promise<AntragDetailDto> {
-    return this.entscheiden(
-      vorgesetzteId,
-      antragId,
-      AntragStatus.GENEHMIGT,
-      null,
-    );
+  async genehmigen(user: AuthUser, antragId: number): Promise<AntragDetailDto> {
+    return this.entscheiden(user, antragId, AntragStatus.GENEHMIGT, null);
   }
 
   /** VG-3: EINGEREICHT → ZURUECKGEWIESEN, Antrag wird wieder bearbeitbar. */
   async zurueckweisen(
-    vorgesetzteId: number,
+    user: AuthUser,
     antragId: number,
     begruendung: string,
   ): Promise<AntragDetailDto> {
     return this.entscheiden(
-      vorgesetzteId,
+      user,
       antragId,
       AntragStatus.ZURUECKGEWIESEN,
       begruendung,
@@ -105,39 +106,40 @@ export class FreigabeService {
 
   /** EINGEREICHT → ABGELEHNT (endgültig). */
   async ablehnen(
-    vorgesetzteId: number,
+    user: AuthUser,
     antragId: number,
     begruendung: string,
   ): Promise<AntragDetailDto> {
     return this.entscheiden(
-      vorgesetzteId,
+      user,
       antragId,
       AntragStatus.ABGELEHNT,
       begruendung,
     );
   }
 
+  /**
+   * Gemeinsamer Ablauf für alle drei Entscheide. Unzulässige Übergänge (z. B. einen
+   * genehmigten Antrag zurückweisen) verhindert statusWechseln() mit 409.
+   */
   private async entscheiden(
-    vorgesetzteId: number,
+    user: AuthUser,
     antragId: number,
     neuerStatus: AntragStatus,
     begruendung: string | null,
   ): Promise<AntragDetailDto> {
-    const antrag = await this.ladeTeamAntrag(vorgesetzteId, antragId);
-    if (antrag.status !== AntragStatus.EINGEREICHT) {
-      throw new ConflictException(
-        `Nur eingereichte Anträge können entschieden werden (Status ist ${antrag.status})`,
-      );
-    }
-    const entschieden = await this.prisma.spesenantrag.update({
-      where: { id: antragId },
-      data: {
-        status: neuerStatus,
+    const antrag = await this.ladeTeamAntrag(user.id, antragId);
+    const entschieden = await statusWechseln(this.prisma, {
+      antragId,
+      von: antrag.status,
+      nach: neuerStatus,
+      user,
+      begruendung,
+      daten: {
         begruendung,
-        entschiedenVonId: vorgesetzteId,
+        entschiedenVonId: user.id,
         entschiedenAm: new Date(),
       },
-      include: antragInclude,
     });
     return toAntragDetailDto(entschieden);
   }
@@ -147,7 +149,11 @@ export class FreigabeService {
     antragId: number,
   ): Promise<AntragMitPositionen> {
     const antrag = await this.prisma.spesenantrag.findFirst({
-      where: { id: antragId, mitarbeitende: { vorgesetzteId } },
+      where: {
+        id: antragId,
+        mitarbeitende: { vorgesetzteId },
+        status: { in: [...SICHTBAR_FUER_VORGESETZTE] },
+      },
       include: antragInclude,
     });
     if (!antrag) {

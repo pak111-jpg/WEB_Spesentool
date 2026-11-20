@@ -10,6 +10,9 @@ import {
   toAntragDto,
 } from '../antraege/antraege.mapper';
 import { AntragDetailDto, AntragDto } from '../antraege/dto/antrag.dto';
+import { SICHTBAR_FUER_LOHNBUCHHALTUNG } from '../antraege/statusregeln';
+import { statusWechseln, verlaufEintrag } from '../antraege/statuswechsel';
+import { AuthUser } from '../common/decorators/current-user.decorator';
 import { AntragStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -22,13 +25,19 @@ import {
 export class LohnbuchhaltungService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Abrechnungen aller Mitarbeitenden, standardmässig nur GENEHMIGT (noch nicht ausbezahlt). */
+  /**
+   * Abrechnungen aller Mitarbeitenden. Die Lohnbuchhaltung sieht nur GENEHMIGT und AUSBEZAHLT;
+   * ohne Statusfilter beide, sonst den gewählten.
+   */
   async abrechnungen(query: AbrechnungenQueryDto): Promise<AntragDto[]> {
+    if (query.status && !SICHTBAR_FUER_LOHNBUCHHALTUNG.includes(query.status)) {
+      return [];
+    }
     const antraege = await this.prisma.spesenantrag.findMany({
       where: {
         jahr: query.jahr,
         monat: query.monat,
-        status: query.status ?? AntragStatus.GENEHMIGT,
+        status: query.status ?? { in: [...SICHTBAR_FUER_LOHNBUCHHALTUNG] },
       },
       include: antragInclude,
       orderBy: [
@@ -40,9 +49,13 @@ export class LohnbuchhaltungService {
     return antraege.map(toAntragDto);
   }
 
+  /** LB-2: Eine genehmigte oder ausbezahlte Abrechnung mit Positionen, Belegen und Verlauf. */
   async eine(antragId: number): Promise<AntragDetailDto> {
-    const antrag = await this.prisma.spesenantrag.findUnique({
-      where: { id: antragId },
+    const antrag = await this.prisma.spesenantrag.findFirst({
+      where: {
+        id: antragId,
+        status: { in: [...SICHTBAR_FUER_LOHNBUCHHALTUNG] },
+      },
       include: antragInclude,
     });
     if (!antrag) {
@@ -90,7 +103,7 @@ export class LohnbuchhaltungService {
 
   /** LB-3: Einzelne Abrechnung GENEHMIGT → AUSBEZAHLT (Endzustand). */
   async alsAusbezahltMarkieren(
-    lohnbuchhaltungId: number,
+    user: AuthUser,
     antragId: number,
   ): Promise<AntragDetailDto> {
     const antrag = await this.prisma.spesenantrag.findUnique({
@@ -107,40 +120,54 @@ export class LohnbuchhaltungService {
         `Nur genehmigte Abrechnungen können ausbezahlt werden (Status ist ${antrag.status})`,
       );
     }
-    const ausbezahlt = await this.prisma.spesenantrag.update({
-      where: { id: antragId },
-      data: {
-        status: AntragStatus.AUSBEZAHLT,
-        ausbezahltVonId: lohnbuchhaltungId,
-        ausbezahltAm: new Date(),
-      },
-      include: antragInclude,
+    const ausbezahlt = await statusWechseln(this.prisma, {
+      antragId,
+      von: AntragStatus.GENEHMIGT,
+      nach: AntragStatus.AUSBEZAHLT,
+      user,
+      daten: { ausbezahltVonId: user.id, ausbezahltAm: new Date() },
     });
     return toAntragDetailDto(ausbezahlt);
   }
 
-  /** LB-3: Alle genehmigten Abrechnungen eines Monats auf einmal als ausbezahlt markieren (Monatsende). */
+  /**
+   * LB-5: Alle genehmigten Abrechnungen eines Monats auf einmal als ausbezahlt markieren
+   * (Monatsende). Läuft in einer Transaktion: Status und Verlauf werden gemeinsam gespeichert.
+   */
   async monatAusbezahlen(
-    lohnbuchhaltungId: number,
+    user: AuthUser,
     jahr: number,
     monat: number,
   ): Promise<AusbezahltErgebnisDto> {
-    const genehmigte = await this.prisma.spesenantrag.findMany({
-      where: { jahr, monat, status: AntragStatus.GENEHMIGT },
-      select: { id: true },
-    });
-    const antragIds = genehmigte.map((a) => a.id);
-    if (antragIds.length > 0) {
-      await this.prisma.spesenantrag.updateMany({
+    return this.prisma.$transaction(async (tx) => {
+      const genehmigte = await tx.spesenantrag.findMany({
+        where: { jahr, monat, status: AntragStatus.GENEHMIGT },
+        select: { id: true },
+      });
+      const antragIds = genehmigte.map((a) => a.id);
+      if (antragIds.length === 0) {
+        return { anzahl: 0, antragIds };
+      }
+      await tx.spesenantrag.updateMany({
         where: { id: { in: antragIds }, status: AntragStatus.GENEHMIGT },
         data: {
           status: AntragStatus.AUSBEZAHLT,
-          ausbezahltVonId: lohnbuchhaltungId,
+          ausbezahltVonId: user.id,
           ausbezahltAm: new Date(),
         },
       });
-    }
-    return { anzahl: antragIds.length, antragIds };
+      await tx.statusAenderung.createMany({
+        data: antragIds.map((id) =>
+          verlaufEintrag(
+            id,
+            AntragStatus.GENEHMIGT,
+            AntragStatus.AUSBEZAHLT,
+            user,
+          ),
+        ),
+      });
+      return { anzahl: antragIds.length, antragIds };
+    });
   }
 
   /** LB-4: Spesen pro Kostenstelle (genehmigt + ausbezahlt). */

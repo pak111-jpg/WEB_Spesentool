@@ -51,7 +51,7 @@ export class AntraegeController {
     @CurrentUser() user: AuthUser,
     @Body() dto: CreateAntragDto,
   ): Promise<AntragDetailDto> {
-    return this.antraegeService.erstellen(user.id, dto);
+    return this.antraegeService.erstellen(user, dto);
   }
 
   @Get()
@@ -109,12 +109,13 @@ export class AntraegeController {
     description: 'Antrag unvollständig',
   })
   @ApiConflictResponse({
-    description: 'Antrag ist nicht im Status ERFASST oder ZURUECKGEWIESEN',
+    description:
+      'Antrag ist nicht im Status ERFASST oder ZURUECKGEWIESEN, oder der Person ist keine vorgesetzte Person zugeordnet',
   })
   einreichen(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<AntragDetailDto> {
-    return this.antraegeService.einreichen(user.id, id);
+    return this.antraegeService.einreichen(user, id);
   }
 }

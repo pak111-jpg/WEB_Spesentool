@@ -1,201 +1,252 @@
 /**
- * Lohnbuchhaltung: Abrechnungen eines Monats, CSV-Export (LB-1), Auszahlung (LB-3)
- * und Auswertung pro Kostenstelle (LB-4).
+ * Lohnbuchhaltung: Abrechnungen eines Monats, kombiniert filterbar nach Monat, Jahr und Status
+ * und sortierbar; CSV-Export (LB-1), Auszahlung des ganzen Monats (LB-5) und Auswertung pro
+ * Kostenstelle (LB-4).
  */
 import * as api from '../api';
 import {
-  ALLE_STATUS_OPTIONEN,
   auswahl,
-  chf,
   dateiSpeichern,
   el,
-  feld,
   jahrFeld,
+  knopf,
+  meldungsZeile,
   monatAuswahl,
-  monatName,
   statusMarke,
+  statusOptionen,
   tabelle,
   zeigeMeldung,
   zelle,
 } from '../dom';
-import type { Antrag, AntragStatus, KostenstellenAuswertung } from '../typen';
+import { chf, monatName } from '../format';
+import { feld, pruefeFelder } from '../formular';
+import {
+  sortierbareTabelle,
+  type Spalte,
+} from '../komponenten/sortier-tabelle';
+import { summeTotal } from '../regeln';
+import {
+  STATUS,
+  type Antrag,
+  type AntragStatus,
+  type KostenstellenAuswertung,
+} from '../typen';
+import { ganzzahlZwischen } from '../validierung';
 
-export async function lohnbuchhaltungListeSeite(): Promise<HTMLElement> {
-  const heute = new Date();
-  const monat = monatAuswahl('f-monat', heute.getMonth() + 1);
-  const jahr = jahrFeld('f-jahr', heute.getFullYear());
-  // Standard des Backends: GENEHMIGT, also bereit zur Auszahlung
-  const status = auswahl('f-status', ALLE_STATUS_OPTIONEN, 'GENEHMIGT');
-  const meldung = el('p', { className: 'meldung', role: 'status' });
-  const listeBox = el('div');
-  const auswertungBox = el('div');
+const SPALTEN: Spalte<Antrag>[] = [
+  {
+    titel: 'Personalnr.',
+    inhalt: (a) => a.mitarbeitende.personalnummer,
+    sortWert: (a) => a.mitarbeitende.personalnummer,
+  },
+  {
+    titel: 'Name',
+    inhalt: (a) => a.mitarbeitende.name,
+    sortWert: (a) => a.mitarbeitende.name,
+  },
+  {
+    titel: 'Kostenstelle',
+    inhalt: (a) => a.mitarbeitende.kostenstelle,
+    sortWert: (a) => a.mitarbeitende.kostenstelle,
+  },
+  {
+    titel: 'Total',
+    inhalt: (a) => chf.format(a.total),
+    sortWert: (a) => a.total,
+    klasse: 'zahl',
+  },
+  {
+    titel: 'Status',
+    inhalt: (a) => statusMarke(a.status),
+    sortWert: (a) => a.status,
+  },
+  {
+    titel: 'Aktion',
+    inhalt: (a) => el('a', { href: `#/lohnbuchhaltung/${a.id}` }, 'Ansehen'),
+  },
+];
 
-  const gewaehlt = () => ({
-    jahr: Number(jahr.value),
-    monat: Number(monat.value),
-  });
+interface Filter {
+  monat: HTMLSelectElement;
+  jahr: HTMLInputElement;
+  status: HTMLSelectElement;
+  liste: HTMLElement;
+  auswertung: HTMLElement;
+  meldung: HTMLElement;
+}
 
-  function listeZeichnen(antraege: Antrag[]): void {
-    if (antraege.length === 0) {
-      listeBox.replaceChildren(
-        el('p', { className: 'leer' }, 'Keine Abrechnungen für diese Auswahl.'),
-      );
-      return;
-    }
-    const zeilen = antraege.map((antrag) =>
-      el(
-        'tr',
-        {},
-        zelle('', antrag.mitarbeitende.personalnummer),
-        zelle('', antrag.mitarbeitende.name),
-        zelle('', antrag.mitarbeitende.kostenstelle),
-        zelle('', monatName(antrag.jahr, antrag.monat)),
-        zelle('zahl', String(antrag.anzahlPositionen)),
-        zelle('zahl', chf.format(antrag.total)),
-        zelle('', statusMarke(antrag.status)),
-        zelle(
-          '',
-          el('a', { href: `#/lohnbuchhaltung/${antrag.id}` }, 'Ansehen'),
-        ),
-      ),
-    );
-    listeBox.replaceChildren(
-      tabelle(
-        [
-          'Personalnummer',
-          'Name',
-          'Kostenstelle',
-          'Monat',
-          'Positionen',
-          'Total',
-          'Status',
-          '',
-        ],
-        zeilen,
-      ),
-    );
-  }
-
-  function auswertungZeichnen(eintraege: KostenstellenAuswertung[]): void {
-    if (eintraege.length === 0) {
-      auswertungBox.replaceChildren(
-        el(
+function listeZeichnen(f: Filter, antraege: Antrag[]): void {
+  const monat = monatName(Number(f.jahr.value), Number(f.monat.value));
+  f.liste.replaceChildren(
+    antraege.length === 0
+      ? el(
           'p',
           { className: 'leer' },
-          'Keine genehmigten oder ausbezahlten Spesen in diesem Monat.',
-        ),
-      );
-      return;
-    }
-    const zeilen = eintraege.map((eintrag) =>
+          `Keine Abrechnungen für ${monat} mit diesem Status.`,
+        )
+      : sortierbareTabelle(SPALTEN, antraege, { spalte: 0, richtung: 'auf' }),
+    el(
+      'p',
+      { className: 'klein' },
+      `${antraege.length} Abrechnung(en), Total ${chf.format(summeTotal(antraege))}`,
+    ),
+  );
+}
+
+/** LB-4: Tabelle pro Kostenstelle mit Summenzeile. */
+function auswertungZeichnen(
+  f: Filter,
+  eintraege: KostenstellenAuswertung[],
+): void {
+  if (eintraege.length === 0) {
+    f.auswertung.replaceChildren(
       el(
-        'tr',
-        {},
-        zelle('', eintrag.kostenstelle),
-        zelle('zahl', String(eintrag.anzahlAbrechnungen)),
-        zelle('zahl', String(eintrag.anzahlPositionen)),
-        zelle('zahl', chf.format(eintrag.total)),
+        'p',
+        { className: 'leer' },
+        'Keine genehmigten oder ausbezahlten Spesen in diesem Monat.',
       ),
     );
-    const total = eintraege.reduce(
-      (summe, eintrag) => summe + eintrag.total,
-      0,
-    );
-    zeilen.push(
-      el(
-        'tr',
-        { className: 'summe' },
-        zelle('', 'Total'),
-        zelle('', ''),
-        zelle('', ''),
-        zelle('zahl', chf.format(total)),
-      ),
-    );
-    auswertungBox.replaceChildren(
-      tabelle(['Kostenstelle', 'Abrechnungen', 'Positionen', 'Total'], zeilen),
-    );
+    return;
   }
+  const zeilen = eintraege.map((e) =>
+    el(
+      'tr',
+      {},
+      zelle('', e.kostenstelle),
+      zelle('zahl', String(e.anzahlAbrechnungen)),
+      zelle('zahl', String(e.anzahlPositionen)),
+      zelle('zahl', chf.format(e.total)),
+    ),
+  );
+  zeilen.push(
+    el(
+      'tr',
+      { className: 'summe' },
+      zelle('', 'Total'),
+      zelle('', ''),
+      zelle('', ''),
+      zelle('zahl', chf.format(summeTotal(eintraege))),
+    ),
+  );
+  f.auswertung.replaceChildren(
+    tabelle(['Kostenstelle', 'Abrechnungen', 'Positionen', 'Total'], zeilen),
+  );
+}
 
-  /** Lädt Liste und Auswertung für die aktuelle Auswahl neu. */
-  async function laden(): Promise<void> {
-    const { jahr, monat } = gewaehlt();
-    try {
-      const [antraege, auswertung] = await Promise.all([
-        api.lohnbuchhaltung.abrechnungen({
-          jahr,
-          monat,
-          status: status.value as AntragStatus,
-        }),
-        api.lohnbuchhaltung.auswertung(jahr, monat),
-      ]);
-      listeZeichnen(antraege);
-      auswertungZeichnen(auswertung);
-    } catch (fehler) {
-      zeigeMeldung(meldung, api.fehlerText(fehler), 'fehler');
-    }
+/** Lädt Liste und Auswertung für die aktuelle Auswahl neu (mit Ladeanzeige). */
+async function laden(f: Filter): Promise<void> {
+  if (!pruefeFelder([[f.jahr, [ganzzahlZwischen(2000, 2100, 'Jahr')]]])) return;
+  const jahr = Number(f.jahr.value);
+  const monat = Number(f.monat.value);
+  f.liste.replaceChildren(el('p', { className: 'leer' }, 'Wird geladen …'));
+  try {
+    const status = (f.status.value || undefined) as AntragStatus | undefined;
+    const [antraege, auswertung] = await Promise.all([
+      api.lohnbuchhaltung.abrechnungen({ jahr, monat, status }),
+      api.lohnbuchhaltung.auswertung(jahr, monat),
+    ]);
+    listeZeichnen(f, antraege);
+    auswertungZeichnen(f, auswertung);
+  } catch (fehler) {
+    f.liste.replaceChildren();
+    zeigeMeldung(f.meldung, api.fehlerText(fehler), 'fehler');
   }
-  monat.onchange = jahr.onchange = status.onchange = () => void laden();
-  await laden();
+}
 
-  // ---------- Aktionen für den Monat ----------
-  const exportieren = el(
-    'button',
-    { type: 'button', className: 'sekundaer' },
-    'CSV exportieren',
-  );
-  exportieren.onclick = () => {
-    const { jahr, monat } = gewaehlt();
-    api.lohnbuchhaltung
-      .exportCsv(jahr, monat)
-      // Dateiname wie im Backend: spesen-JJJJ-MM.csv
-      .then((csv) =>
-        dateiSpeichern(
-          csv,
-          `spesen-${jahr}-${String(monat).padStart(2, '0')}.csv`,
-        ),
-      )
-      .catch((fehler: unknown) =>
-        zeigeMeldung(meldung, api.fehlerText(fehler), 'fehler'),
-      );
-  };
+async function exportieren(f: Filter): Promise<void> {
+  const jahr = Number(f.jahr.value);
+  const monat = Number(f.monat.value);
+  const dateiname = `spesen-${jahr}-${String(monat).padStart(2, '0')}.csv`;
+  try {
+    dateiSpeichern(await api.lohnbuchhaltung.exportCsv(jahr, monat), dateiname);
+    zeigeMeldung(
+      f.meldung,
+      `${dateiname} heruntergeladen (nur genehmigte, noch nicht ausbezahlte Abrechnungen).`,
+      'erfolg',
+    );
+  } catch (fehler) {
+    zeigeMeldung(f.meldung, api.fehlerText(fehler), 'fehler');
+  }
+}
 
-  const ausbezahlen = el(
-    'button',
-    { type: 'button' },
-    'Genehmigte als ausbezahlt markieren',
-  );
-  ausbezahlen.onclick = () => {
-    const { jahr, monat } = gewaehlt();
-    if (
-      !confirm(
-        `Alle genehmigten Abrechnungen für ${monatName(jahr, monat)} als ausbezahlt markieren?`,
-      )
+async function ausbezahlen(
+  f: Filter,
+  knopfEl: HTMLButtonElement,
+): Promise<void> {
+  const jahr = Number(f.jahr.value);
+  const monat = Number(f.monat.value);
+  if (
+    !confirm(
+      `Alle genehmigten Abrechnungen für ${monatName(jahr, monat)} als ausbezahlt markieren?`,
     )
-      return;
-    api.lohnbuchhaltung
-      .monatAusbezahlt(jahr, monat)
-      .then((ergebnis) => {
-        zeigeMeldung(
-          meldung,
-          `${ergebnis.anzahl} Abrechnung(en) als ausbezahlt markiert.`,
-          'erfolg',
-        );
-        return laden();
-      })
-      .catch((fehler: unknown) =>
-        zeigeMeldung(meldung, api.fehlerText(fehler), 'fehler'),
-      );
+  )
+    return;
+  knopfEl.disabled = true; // gegen Doppelklick
+  try {
+    const ergebnis = await api.lohnbuchhaltung.monatAusbezahlt(jahr, monat);
+    zeigeMeldung(
+      f.meldung,
+      `${ergebnis.anzahl} Abrechnung(en) als ausbezahlt markiert.`,
+      'erfolg',
+    );
+    await laden(f);
+  } catch (fehler) {
+    zeigeMeldung(f.meldung, api.fehlerText(fehler), 'fehler');
+  } finally {
+    knopfEl.disabled = false;
+  }
+}
+
+function filterErstellen(): Filter {
+  // Standard: Vormonat, denn ausbezahlt wird am Monatsende mit dem Lohn
+  const vormonat = new Date();
+  vormonat.setDate(1);
+  vormonat.setMonth(vormonat.getMonth() - 1);
+  const optionen = statusOptionen([STATUS.GENEHMIGT, STATUS.AUSBEZAHLT]);
+  return {
+    monat: monatAuswahl('f-monat', vormonat.getMonth() + 1),
+    jahr: jahrFeld('f-jahr', vormonat.getFullYear()),
+    status: auswahl('f-status', optionen, STATUS.GENEHMIGT),
+    liste: el('div'),
+    auswertung: el('div'),
+    meldung: meldungsZeile(),
   };
+}
 
-  const filter = el(
-    'form',
-    { className: 'formular zeile' },
-    feld('Monat', monat),
-    feld('Jahr', jahr),
-    feld('Status', status),
+function filterFormular(f: Filter): HTMLFormElement {
+  [f.monat, f.jahr, f.status].forEach((e) =>
+    e.addEventListener('change', () => void laden(f)),
   );
-  filter.onsubmit = (ereignis) => ereignis.preventDefault();
+  const formular = el(
+    'form',
+    { className: 'formular zeile', noValidate: true },
+    feld('Monat', f.monat),
+    feld('Jahr', f.jahr),
+    feld('Status', f.status),
+  );
+  formular.addEventListener('submit', (e) => e.preventDefault());
+  return formular;
+}
 
+function aktionsKnoepfe(f: Filter): HTMLElement {
+  const ausbezahlenKnopf: HTMLButtonElement = knopf(
+    'Genehmigte als ausbezahlt markieren',
+    '',
+    () => void ausbezahlen(f, ausbezahlenKnopf),
+  );
+  const exportKnopf = knopf(
+    'CSV exportieren',
+    'sekundaer',
+    () => void exportieren(f),
+  );
+  return el('div', { className: 'knopfzeile' }, exportKnopf, ausbezahlenKnopf);
+}
+
+/** Seite «Abrechnungen» der Lohnbuchhaltung. */
+export async function lohnbuchhaltungListeSeite(): Promise<HTMLElement> {
+  const f = filterErstellen();
+  const filter = filterFormular(f);
+  await laden(f);
   return el(
     'div',
     { className: 'seite' },
@@ -204,9 +255,9 @@ export async function lohnbuchhaltungListeSeite(): Promise<HTMLElement> {
       { className: 'karte' },
       el('h1', {}, 'Abrechnungen'),
       filter,
-      listeBox,
-      el('div', { className: 'knopfzeile' }, exportieren, ausbezahlen),
-      meldung,
+      f.liste,
+      aktionsKnoepfe(f),
+      f.meldung,
     ),
     el(
       'section',
@@ -217,7 +268,7 @@ export async function lohnbuchhaltungListeSeite(): Promise<HTMLElement> {
         { className: 'klein' },
         'Genehmigte und ausbezahlte Abrechnungen des gewählten Monats.',
       ),
-      auswertungBox,
+      f.auswertung,
     ),
   );
 }

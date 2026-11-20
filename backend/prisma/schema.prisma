@@ -53,9 +53,10 @@ model User {
   vorgesetzte   User?  @relation("Team", fields: [vorgesetzteId], references: [id])
   team          User[] @relation("Team")
 
-  antraege     Spesenantrag[] @relation("AntragMitarbeitende")
-  entscheide   Spesenantrag[] @relation("AntragEntscheid")
-  auszahlungen Spesenantrag[] @relation("AntragAuszahlung")
+  antraege          Spesenantrag[]    @relation("AntragMitarbeitende")
+  entscheide        Spesenantrag[]    @relation("AntragEntscheid")
+  auszahlungen      Spesenantrag[]    @relation("AntragAuszahlung")
+  statusAenderungen StatusAenderung[]
 }
 
 model Spesenantrag {
@@ -83,6 +84,7 @@ model Spesenantrag {
   geaendertAm   DateTime  @updatedAt
 
   positionen Position[]
+  verlauf    StatusAenderung[]
 
   @@unique([mitarbeitendeId, jahr, monat])
   @@index([status])
@@ -114,4 +116,22 @@ model Beleg {
   // Pfad relativ zum Upload-Verzeichnis
   pfad          String
   hochgeladenAm DateTime @default(now())
+}
+
+// Verlauf: jede Statusänderung mit Zeitpunkt, Person und Rolle (Nachvollziehbarkeit, U2.4)
+model StatusAenderung {
+  id          Int           @id @default(autoincrement())
+  antragId    Int
+  antrag      Spesenantrag  @relation(fields: [antragId], references: [id], onDelete: Cascade)
+  // null beim Anlegen des Antrags (Startzustand)
+  vonStatus   AntragStatus?
+  nachStatus  AntragStatus
+  zeitpunkt   DateTime      @default(now())
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  // Rolle zum Zeitpunkt der Änderung
+  rolle       Rolle
+  begruendung String?       @db.Text
+
+  @@index([antragId])
 }

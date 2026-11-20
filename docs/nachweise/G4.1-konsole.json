@@ -1,0 +1,22 @@
+[
+  {
+    "typ": "debug",
+    "text": "[vite] connecting...",
+    "url": "http://127.0.0.1:5173/#/login"
+  },
+  {
+    "typ": "debug",
+    "text": "[vite] connected.",
+    "url": "http://127.0.0.1:5173/#/login"
+  },
+  {
+    "typ": "debug",
+    "text": "[vite] connecting...",
+    "url": "http://127.0.0.1:5173/#/login"
+  },
+  {
+    "typ": "debug",
+    "text": "[vite] connected.",
+    "url": "http://127.0.0.1:5173/#/login"
+  }
+]

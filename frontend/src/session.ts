@@ -7,11 +7,13 @@ import type { LoginAntwort, User } from './typen';
 
 const SCHLUESSEL = 'spesenportal.session.v1';
 
+/** Was der Browser nach der Anmeldung speichert. */
 export interface Session {
   accessToken: string;
   user: User;
 }
 
+/** Session nach erfolgreichem Login speichern. */
 export function anmelden(antwort: LoginAntwort): void {
   const session: Session = {
     accessToken: antwort.accessToken,
@@ -20,10 +22,12 @@ export function anmelden(antwort: LoginAntwort): void {
   localStorage.setItem(SCHLUESSEL, JSON.stringify(session));
 }
 
+/** Session löschen (Abmelden oder Token abgelaufen). */
 export function abmelden(): void {
   localStorage.removeItem(SCHLUESSEL);
 }
 
+/** Gespeicherte Session lesen; null, wenn niemand angemeldet ist. */
 export function aktuelleSession(): Session | null {
   try {
     const text = localStorage.getItem(SCHLUESSEL);

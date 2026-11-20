@@ -4,36 +4,56 @@
  * Zeitstempel kommen als ISO-Strings über JSON, nicht als Date-Objekte.
  */
 
-// prisma/schema.prisma: enum Rolle
-export type Rolle = 'MITARBEITENDE' | 'VORGESETZTE' | 'LOHNBUCHHALTUNG';
+// ---------- Feste Werte: einzige Stelle mit den Texten der Status, Rollen und Kategorien ----------
 
-// prisma/schema.prisma: enum AntragStatus (Zustandsautomat des Antrags)
-export type AntragStatus =
-  | 'ERFASST'
-  | 'EINGEREICHT'
-  | 'ZURUECKGEWIESEN'
-  | 'GENEHMIGT'
-  | 'AUSBEZAHLT'
-  | 'ABGELEHNT';
+/** Rollen (prisma/schema.prisma: enum Rolle). Im Code immer ROLLE.X statt eines Textes verwenden. */
+export const ROLLE = {
+  MITARBEITENDE: 'MITARBEITENDE',
+  VORGESETZTE: 'VORGESETZTE',
+  LOHNBUCHHALTUNG: 'LOHNBUCHHALTUNG',
+} as const;
+export type Rolle = (typeof ROLLE)[keyof typeof ROLLE];
 
-export const ALLE_STATUS: AntragStatus[] = [
-  'ERFASST',
-  'EINGEREICHT',
-  'ZURUECKGEWIESEN',
-  'GENEHMIGT',
-  'AUSBEZAHLT',
-  'ABGELEHNT',
+/** Status eines Antrags (prisma/schema.prisma: enum AntragStatus, siehe docs/zustandsdiagramm.md). */
+export const STATUS = {
+  ERFASST: 'ERFASST',
+  EINGEREICHT: 'EINGEREICHT',
+  ZURUECKGEWIESEN: 'ZURUECKGEWIESEN',
+  GENEHMIGT: 'GENEHMIGT',
+  AUSBEZAHLT: 'AUSBEZAHLT',
+  ABGELEHNT: 'ABGELEHNT',
+} as const;
+export type AntragStatus = (typeof STATUS)[keyof typeof STATUS];
+
+/** Alle Status in der Reihenfolge des Ablaufs. */
+export const ALLE_STATUS: AntragStatus[] = Object.values(STATUS);
+
+/** Kategorien einer Position (prisma/schema.prisma: enum Kategorie). */
+export const KATEGORIE = {
+  FAHRT: 'FAHRT',
+  VERPFLEGUNG: 'VERPFLEGUNG',
+  UEBERNACHTUNG: 'UEBERNACHTUNG',
+  MATERIAL: 'MATERIAL',
+} as const;
+export type Kategorie = (typeof KATEGORIE)[keyof typeof KATEGORIE];
+
+/** Alle Kategorien für die Auswahlliste. */
+export const ALLE_KATEGORIEN: Kategorie[] = Object.values(KATEGORIE);
+
+/** Dateitypen, die das Backend als Beleg annimmt (src/belege/belege.service.ts). */
+export const BELEG_TYPEN = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'application/pdf',
 ];
 
-// prisma/schema.prisma: enum Kategorie
-export type Kategorie = 'FAHRT' | 'VERPFLEGUNG' | 'UEBERNACHTUNG' | 'MATERIAL';
+/** Maximale Grösse eines Belegs in Bytes (10 MB, wie im Backend). */
+export const BELEG_MAX_BYTES = 10 * 1024 * 1024;
 
-export const ALLE_KATEGORIEN: Kategorie[] = [
-  'FAHRT',
-  'VERPFLEGUNG',
-  'UEBERNACHTUNG',
-  'MATERIAL',
-];
+/** Frist für den Entscheid der vorgesetzten Person in Arbeitstagen (VG-4). */
+export const FRIST_ARBEITSTAGE = 2;
 
 // src/auth/dto/user.dto.ts: UserDto
 export interface User {
@@ -107,9 +127,21 @@ export interface Antrag {
   geaendertAm: string;
 }
 
+// src/antraege/dto/antrag.dto.ts: StatusAenderungDto (ein Eintrag im Verlauf)
+export interface StatusAenderung {
+  id: number;
+  vonStatus: AntragStatus | null;
+  nachStatus: AntragStatus;
+  zeitpunkt: string;
+  person: PersonKurz;
+  rolle: Rolle;
+  begruendung: string | null;
+}
+
 // src/antraege/dto/antrag.dto.ts: AntragDetailDto
 export interface AntragDetail extends Antrag {
   positionen: Position[];
+  verlauf: StatusAenderung[];
 }
 
 // src/antraege/dto/create-antrag.dto.ts: CreateAntragDto

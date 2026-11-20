@@ -55,7 +55,7 @@ export class FreigabeController {
   @Get('antraege')
   @ApiOperation({
     summary:
-      'Alle Anträge des Teams, optional nach Status gefiltert (Historie)',
+      'Alle eingereichten Anträge des Teams (ohne Entwürfe), optional nach Status gefiltert (Historie)',
   })
   @ApiOkResponse({ type: [AntragDto] })
   team(
@@ -95,7 +95,7 @@ export class FreigabeController {
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<AntragDetailDto> {
-    return this.freigabeService.genehmigen(user.id, id);
+    return this.freigabeService.genehmigen(user, id);
   }
 
   @Post('antraege/:id/zurueckweisen')
@@ -116,7 +116,7 @@ export class FreigabeController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: BegruendungDto,
   ): Promise<AntragDetailDto> {
-    return this.freigabeService.zurueckweisen(user.id, id, dto.begruendung);
+    return this.freigabeService.zurueckweisen(user, id, dto.begruendung);
   }
 
   @Post('antraege/:id/ablehnen')
@@ -136,6 +136,6 @@ export class FreigabeController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: BegruendungDto,
   ): Promise<AntragDetailDto> {
-    return this.freigabeService.ablehnen(user.id, id, dto.begruendung);
+    return this.freigabeService.ablehnen(user, id, dto.begruendung);
   }
 }

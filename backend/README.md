@@ -1,23 +1,26 @@
 # Spesenportal – Backend
 
 REST-API des digitalen Spesenportals (Fach DTR).
-Gruppe: Parwar Habasch, Felix Stalder, Pakierthan Pakeerthan
+Gruppe: Parwar Habasch, Felix Stalder, Pakierthan Pakeerathan
 
 **Stack:** NestJS 12 · Prisma 7 · TypeScript 6 · MariaDB 11 (Docker) · JWT-Auth · Swagger/OpenAPI
 
+Gesamtübersicht, Start in drei Schritten und alle Pflichtangaben: siehe [README im Hauptordner](../README.md).
+
 ## Voraussetzungen
 
-- Node.js **24** (LTS) – `nvm use 24`. Mindestens 24.9: NestJS 12 ist ESM-only, und Jest kann ESM-Pakete erst ab Node 24.9 per `require` laden.
+- Node.js **24** (LTS) – `nvm use 24`. Die API läuft ab Node 22.12; die Jest-Tests brauchen 24.9, weil
+  NestJS 12 nur als ES-Modul ausgeliefert wird.
 - Docker Desktop (für die Datenbank)
 
-## Schnellstart
+## Schnellstart (nur Backend)
 
 ```bash
 cp .env.example .env        # Werte bei Bedarf anpassen
 npm install
 npm run db:up               # MariaDB-Container starten (Port 53306)
-npm run db:migrate          # Tabellen anlegen
-npm run db:seed             # Demo-Personen und -Anträge einspielen
+npm run db:migrate          # Tabellen anlegen (prisma migrate deploy)
+npm run db:seed             # 8 Personen und 14 Anträge mit Verlauf und Musterbelegen
 npm run start:dev           # API auf http://localhost:3000
 ```
 
@@ -25,12 +28,16 @@ Swagger-UI: **http://localhost:3000/api** (OpenAPI-JSON: `/api-json`)
 
 ### Demo-Logins (Passwort überall `passwort`)
 
-| E-Mail                  | Rolle            | Bemerkung                           |
-| ----------------------- | ---------------- | ----------------------------------- |
-| anna.meier@firma.ch     | MITARBEITENDE    | Team von Beat, KST-100              |
-| carla.huber@firma.ch    | MITARBEITENDE    | Team von Beat, KST-200              |
-| beat.keller@firma.ch    | VORGESETZTE      | sieht die Anträge von Anna + Carla  |
-| lena.schmid@firma.ch    | LOHNBUCHHALTUNG  | Export, Auszahlung, Auswertung      |
+| E-Mail                  | Rolle            | Bemerkung                              |
+| ----------------------- | ---------------- | -------------------------------------- |
+| anna.meier@firma.ch     | MITARBEITENDE    | Team Beat, KST-100                     |
+| carla.huber@firma.ch    | MITARBEITENDE    | Team Beat, KST-200                     |
+| daniel.frei@firma.ch    | MITARBEITENDE    | Team Beat, KST-100                     |
+| eva.brunner@firma.ch    | MITARBEITENDE    | Team Sandra, KST-300                   |
+| marco.rossi@firma.ch    | MITARBEITENDE    | Team Sandra, KST-300                   |
+| beat.keller@firma.ch    | VORGESETZTE      | sieht Anna, Carla, Daniel              |
+| sandra.weber@firma.ch   | VORGESETZTE      | sieht Eva, Marco                       |
+| lena.schmid@firma.ch    | LOHNBUCHHALTUNG  | Export, Auszahlung, Auswertung         |
 
 In Swagger: `POST /auth/login` ausführen, `accessToken` kopieren, oben rechts auf **Authorize** und als Bearer-Token eintragen.
 
@@ -43,10 +50,15 @@ ERFASST ──einreichen──▶ EINGEREICHT ──genehmigen──▶ GENEHMIG
                             └──ablehnen (mit Begründung)──▶ ABGELEHNT
 ```
 
+- Alle zulässigen Übergänge stehen an einer Stelle: `src/antraege/statusregeln.ts`. Jeder Wechsel läuft über
+  `statusWechseln()` in `src/antraege/statuswechsel.ts`: Prüfung gegen die Tabelle und die Rolle, atomares
+  Update (nur wenn der Antrag noch im erwarteten Status ist, sonst `409`) und Eintrag im Verlauf (`StatusAenderung`).
 - Pro Person und Monat genau **ein** Spesenantrag (`@@unique(mitarbeitendeId, jahr, monat)`).
 - Einreichen nur, wenn **jede** Position Datum, Betrag, Zweck und Beleg hat – sonst `400` mit Liste der betroffenen Positionen (MA-3).
 - Bei Kategorie `FAHRT` rechnet das System `Kilometer × Pauschale` (`KILOMETERPAUSCHALE_CHF` in `.env`, MA-2).
-- Vorgesetzte sehen nur `EINGEREICHT`-Anträge des eigenen Teams; `ueberfaellig` ab > 2 Arbeitstagen (VG-1, VG-4).
+- Vorgesetzte sehen nur Anträge des eigenen Teams und keine Entwürfe (`ERFASST`); offen sind die `EINGEREICHT`-Anträge, `ueberfaellig` ab > 2 Arbeitstagen (VG-1, VG-4).
+- Die Lohnbuchhaltung sieht nur `GENEHMIGT` und `AUSBEZAHLT`.
+- Einreichen braucht eine zugeordnete vorgesetzte Person (sonst `409`).
 - Zurückweisen und Ablehnen brauchen eine Begründung (VG-3); zurückgewiesene Anträge sind wieder bearbeitbar und werden **derselbe** Antrag erneut eingereicht.
 - Export (CSV) enthält nur `GENEHMIGT`; ausbezahlte Abrechnungen erscheinen nicht erneut (LB-1).
 - `AUSBEZAHLT` ist Endzustand – ein zweites Markieren gibt `409` (LB-3).
@@ -73,11 +85,12 @@ Details, Request-/Response-Schemas und Beispiele: Swagger-UI.
 ## Projektstruktur
 
 ```
-prisma/schema.prisma        Datenmodell (User, Spesenantrag, Position, Beleg)
-prisma/seed.ts              Demo-Daten
+prisma/schema.prisma        Datenmodell (User, Spesenantrag, Position, Beleg, StatusAenderung)
+prisma/seed.ts              Demo-Daten laden (seed-daten.ts: Inhalt, seed-beleg.ts: Musterbelege als PDF)
 src/auth                    Login, JWT
 src/common                  Guards (JWT, Rollen), Decorators (@Auth, @CurrentUser)
-src/antraege                Spesenanträge der Mitarbeitenden + DTOs/Mapper
+src/antraege                Spesenanträge der Mitarbeitenden + DTOs/Mapper,
+                            statusregeln.ts (Übergänge, Sichtbarkeit), statuswechsel.ts (Wechsel + Verlauf)
 src/positionen              Positionen, Kilometerpauschale
 src/belege                  Datei-Upload/-Download (Ordner `uploads/`)
 src/freigabe                Prüfen & entscheiden (Vorgesetzte)
@@ -89,7 +102,9 @@ src/lohnbuchhaltung         Export, Auszahlung, Auswertung
 | Skript                | Beschreibung                                   |
 | --------------------- | ---------------------------------------------- |
 | `npm run db:up/down`  | DB-Container starten / stoppen                 |
-| `npm run db:migrate`  | Migration erstellen & anwenden (`prisma migrate dev`) |
+| `npm run db:migrate`  | vorhandene Migrationen anwenden (`prisma migrate deploy`) |
+| `npm run db:migrate:dev` | nach Schemaänderung neue Migration erstellen (`prisma migrate dev`) |
+| `npm test` / `npm run test:e2e` | 28 Unit-Tests / 4 End-to-End-Tests (braucht DB mit Seed) |
 | `npm run db:seed`     | Demo-Daten neu einspielen                      |
 | `npm run db:reset`    | DB leeren, Migrationen + Seed erneut ausführen |
 | `npm run db:studio`   | Prisma Studio (DB im Browser)                  |

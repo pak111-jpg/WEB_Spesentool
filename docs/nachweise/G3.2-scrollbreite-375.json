@@ -1,0 +1,30 @@
+{
+  "01-anmelden": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "02-meine-abrechnungen": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "03-abrechnung-bearbeiten": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "04-freigabe": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "05-antrag-pruefen": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "06-lohnbuchhaltung": {
+    "scroll": 375,
+    "fenster": 375
+  },
+  "07-abrechnung-lohnbuchhaltung": {
+    "scroll": 375,
+    "fenster": 375
+  }
+}

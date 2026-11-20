@@ -256,6 +256,7 @@ export type UserWhereInput = {
   antraege?: Prisma.SpesenantragListRelationFilter
   entscheide?: Prisma.SpesenantragListRelationFilter
   auszahlungen?: Prisma.SpesenantragListRelationFilter
+  statusAenderungen?: Prisma.StatusAenderungListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -273,6 +274,7 @@ export type UserOrderByWithRelationInput = {
   antraege?: Prisma.SpesenantragOrderByRelationAggregateInput
   entscheide?: Prisma.SpesenantragOrderByRelationAggregateInput
   auszahlungen?: Prisma.SpesenantragOrderByRelationAggregateInput
+  statusAenderungen?: Prisma.StatusAenderungOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -294,6 +296,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   antraege?: Prisma.SpesenantragListRelationFilter
   entscheide?: Prisma.SpesenantragListRelationFilter
   auszahlungen?: Prisma.SpesenantragListRelationFilter
+  statusAenderungen?: Prisma.StatusAenderungListRelationFilter
 }, "id" | "personalnummer" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -341,6 +344,7 @@ export type UserCreateInput = {
   antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -357,6 +361,7 @@ export type UserUncheckedCreateInput = {
   antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -372,6 +377,7 @@ export type UserUpdateInput = {
   antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -388,6 +394,7 @@ export type UserUncheckedUpdateInput = {
   antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -628,6 +635,20 @@ export type UserUpdateOneWithoutAuszahlungenNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuszahlungenInput, Prisma.UserUpdateWithoutAuszahlungenInput>, Prisma.UserUncheckedUpdateWithoutAuszahlungenInput>
 }
 
+export type UserCreateNestedOneWithoutStatusAenderungenInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStatusAenderungenInput, Prisma.UserUncheckedCreateWithoutStatusAenderungenInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStatusAenderungenInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutStatusAenderungenNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutStatusAenderungenInput, Prisma.UserUncheckedCreateWithoutStatusAenderungenInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutStatusAenderungenInput
+  upsert?: Prisma.UserUpsertWithoutStatusAenderungenInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStatusAenderungenInput, Prisma.UserUpdateWithoutStatusAenderungenInput>, Prisma.UserUncheckedUpdateWithoutStatusAenderungenInput>
+}
+
 export type UserCreateWithoutTeamInput = {
   personalnummer: string
   email: string
@@ -640,6 +661,7 @@ export type UserCreateWithoutTeamInput = {
   antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTeamInput = {
@@ -655,6 +677,7 @@ export type UserUncheckedCreateWithoutTeamInput = {
   antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTeamInput = {
@@ -674,6 +697,7 @@ export type UserCreateWithoutVorgesetzteInput = {
   antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutVorgesetzteInput = {
@@ -689,6 +713,7 @@ export type UserUncheckedCreateWithoutVorgesetzteInput = {
   antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutVorgesetzteInput = {
@@ -724,6 +749,7 @@ export type UserUpdateWithoutTeamInput = {
   antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamInput = {
@@ -739,6 +765,7 @@ export type UserUncheckedUpdateWithoutTeamInput = {
   antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithWhereUniqueWithoutVorgesetzteInput = {
@@ -784,6 +811,7 @@ export type UserCreateWithoutAntraegeInput = {
   team?: Prisma.UserCreateNestedManyWithoutVorgesetzteInput
   entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAntraegeInput = {
@@ -799,6 +827,7 @@ export type UserUncheckedCreateWithoutAntraegeInput = {
   team?: Prisma.UserUncheckedCreateNestedManyWithoutVorgesetzteInput
   entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
   auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAntraegeInput = {
@@ -818,6 +847,7 @@ export type UserCreateWithoutEntscheideInput = {
   team?: Prisma.UserCreateNestedManyWithoutVorgesetzteInput
   antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
   auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEntscheideInput = {
@@ -833,6 +863,7 @@ export type UserUncheckedCreateWithoutEntscheideInput = {
   team?: Prisma.UserUncheckedCreateNestedManyWithoutVorgesetzteInput
   antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
   auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEntscheideInput = {
@@ -852,6 +883,7 @@ export type UserCreateWithoutAuszahlungenInput = {
   team?: Prisma.UserCreateNestedManyWithoutVorgesetzteInput
   antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
+  statusAenderungen?: Prisma.StatusAenderungCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuszahlungenInput = {
@@ -867,6 +899,7 @@ export type UserUncheckedCreateWithoutAuszahlungenInput = {
   team?: Prisma.UserUncheckedCreateNestedManyWithoutVorgesetzteInput
   antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
   entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuszahlungenInput = {
@@ -897,6 +930,7 @@ export type UserUpdateWithoutAntraegeInput = {
   team?: Prisma.UserUpdateManyWithoutVorgesetzteNestedInput
   entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAntraegeInput = {
@@ -912,6 +946,7 @@ export type UserUncheckedUpdateWithoutAntraegeInput = {
   team?: Prisma.UserUncheckedUpdateManyWithoutVorgesetzteNestedInput
   entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutEntscheideInput = {
@@ -937,6 +972,7 @@ export type UserUpdateWithoutEntscheideInput = {
   team?: Prisma.UserUpdateManyWithoutVorgesetzteNestedInput
   antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
   auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEntscheideInput = {
@@ -952,6 +988,7 @@ export type UserUncheckedUpdateWithoutEntscheideInput = {
   team?: Prisma.UserUncheckedUpdateManyWithoutVorgesetzteNestedInput
   antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
   auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutAuszahlungenInput = {
@@ -977,6 +1014,7 @@ export type UserUpdateWithoutAuszahlungenInput = {
   team?: Prisma.UserUpdateManyWithoutVorgesetzteNestedInput
   antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuszahlungenInput = {
@@ -992,6 +1030,85 @@ export type UserUncheckedUpdateWithoutAuszahlungenInput = {
   team?: Prisma.UserUncheckedUpdateManyWithoutVorgesetzteNestedInput
   antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutStatusAenderungenInput = {
+  personalnummer: string
+  email: string
+  name: string
+  passwortHash: string
+  rolle: $Enums.Rolle
+  kostenstelle: string
+  erstelltAm?: Date | string
+  vorgesetzte?: Prisma.UserCreateNestedOneWithoutTeamInput
+  team?: Prisma.UserCreateNestedManyWithoutVorgesetzteInput
+  antraege?: Prisma.SpesenantragCreateNestedManyWithoutMitarbeitendeInput
+  entscheide?: Prisma.SpesenantragCreateNestedManyWithoutEntschiedenVonInput
+  auszahlungen?: Prisma.SpesenantragCreateNestedManyWithoutAusbezahltVonInput
+}
+
+export type UserUncheckedCreateWithoutStatusAenderungenInput = {
+  id?: number
+  personalnummer: string
+  email: string
+  name: string
+  passwortHash: string
+  rolle: $Enums.Rolle
+  kostenstelle: string
+  erstelltAm?: Date | string
+  vorgesetzteId?: number | null
+  team?: Prisma.UserUncheckedCreateNestedManyWithoutVorgesetzteInput
+  antraege?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutMitarbeitendeInput
+  entscheide?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutEntschiedenVonInput
+  auszahlungen?: Prisma.SpesenantragUncheckedCreateNestedManyWithoutAusbezahltVonInput
+}
+
+export type UserCreateOrConnectWithoutStatusAenderungenInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutStatusAenderungenInput, Prisma.UserUncheckedCreateWithoutStatusAenderungenInput>
+}
+
+export type UserUpsertWithoutStatusAenderungenInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutStatusAenderungenInput, Prisma.UserUncheckedUpdateWithoutStatusAenderungenInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutStatusAenderungenInput, Prisma.UserUncheckedCreateWithoutStatusAenderungenInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutStatusAenderungenInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutStatusAenderungenInput, Prisma.UserUncheckedUpdateWithoutStatusAenderungenInput>
+}
+
+export type UserUpdateWithoutStatusAenderungenInput = {
+  personalnummer?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwortHash?: Prisma.StringFieldUpdateOperationsInput | string
+  rolle?: Prisma.EnumRolleFieldUpdateOperationsInput | $Enums.Rolle
+  kostenstelle?: Prisma.StringFieldUpdateOperationsInput | string
+  erstelltAm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vorgesetzte?: Prisma.UserUpdateOneWithoutTeamNestedInput
+  team?: Prisma.UserUpdateManyWithoutVorgesetzteNestedInput
+  antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
+  entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
+  auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+}
+
+export type UserUncheckedUpdateWithoutStatusAenderungenInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  personalnummer?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  passwortHash?: Prisma.StringFieldUpdateOperationsInput | string
+  rolle?: Prisma.EnumRolleFieldUpdateOperationsInput | $Enums.Rolle
+  kostenstelle?: Prisma.StringFieldUpdateOperationsInput | string
+  erstelltAm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vorgesetzteId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team?: Prisma.UserUncheckedUpdateManyWithoutVorgesetzteNestedInput
+  antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
+  entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
+  auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
 }
 
 export type UserCreateManyVorgesetzteInput = {
@@ -1017,6 +1134,7 @@ export type UserUpdateWithoutVorgesetzteInput = {
   antraege?: Prisma.SpesenantragUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVorgesetzteInput = {
@@ -1032,6 +1150,7 @@ export type UserUncheckedUpdateWithoutVorgesetzteInput = {
   antraege?: Prisma.SpesenantragUncheckedUpdateManyWithoutMitarbeitendeNestedInput
   entscheide?: Prisma.SpesenantragUncheckedUpdateManyWithoutEntschiedenVonNestedInput
   auszahlungen?: Prisma.SpesenantragUncheckedUpdateManyWithoutAusbezahltVonNestedInput
+  statusAenderungen?: Prisma.StatusAenderungUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutVorgesetzteInput = {
@@ -1055,6 +1174,7 @@ export type UserCountOutputType = {
   antraege: number
   entscheide: number
   auszahlungen: number
+  statusAenderungen: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1062,6 +1182,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   antraege?: boolean | UserCountOutputTypeCountAntraegeArgs
   entscheide?: boolean | UserCountOutputTypeCountEntscheideArgs
   auszahlungen?: boolean | UserCountOutputTypeCountAuszahlungenArgs
+  statusAenderungen?: boolean | UserCountOutputTypeCountStatusAenderungenArgs
 }
 
 /**
@@ -1102,6 +1223,13 @@ export type UserCountOutputTypeCountAuszahlungenArgs<ExtArgs extends runtime.Typ
   where?: Prisma.SpesenantragWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountStatusAenderungenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StatusAenderungWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1118,6 +1246,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   antraege?: boolean | Prisma.User$antraegeArgs<ExtArgs>
   entscheide?: boolean | Prisma.User$entscheideArgs<ExtArgs>
   auszahlungen?: boolean | Prisma.User$auszahlungenArgs<ExtArgs>
+  statusAenderungen?: boolean | Prisma.User$statusAenderungenArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1142,6 +1271,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   antraege?: boolean | Prisma.User$antraegeArgs<ExtArgs>
   entscheide?: boolean | Prisma.User$entscheideArgs<ExtArgs>
   auszahlungen?: boolean | Prisma.User$auszahlungenArgs<ExtArgs>
+  statusAenderungen?: boolean | Prisma.User$statusAenderungenArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1153,6 +1283,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     antraege: Prisma.$SpesenantragPayload<ExtArgs>[]
     entscheide: Prisma.$SpesenantragPayload<ExtArgs>[]
     auszahlungen: Prisma.$SpesenantragPayload<ExtArgs>[]
+    statusAenderungen: Prisma.$StatusAenderungPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1509,6 +1640,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   antraege<T extends Prisma.User$antraegeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$antraegeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SpesenantragPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   entscheide<T extends Prisma.User$entscheideArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$entscheideArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SpesenantragPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auszahlungen<T extends Prisma.User$auszahlungenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auszahlungenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SpesenantragPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  statusAenderungen<T extends Prisma.User$statusAenderungenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$statusAenderungenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StatusAenderungPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2007,6 +2139,30 @@ export type User$auszahlungenArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.SpesenantragScalarFieldEnum | Prisma.SpesenantragScalarFieldEnum[]
+}
+
+/**
+ * User.statusAenderungen
+ */
+export type User$statusAenderungenArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StatusAenderung
+   */
+  select?: Prisma.StatusAenderungSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StatusAenderung
+   */
+  omit?: Prisma.StatusAenderungOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StatusAenderungInclude<ExtArgs> | null
+  where?: Prisma.StatusAenderungWhereInput
+  orderBy?: Prisma.StatusAenderungOrderByWithRelationInput | Prisma.StatusAenderungOrderByWithRelationInput[]
+  cursor?: Prisma.StatusAenderungWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StatusAenderungScalarFieldEnum | Prisma.StatusAenderungScalarFieldEnum[]
 }
 
 /**

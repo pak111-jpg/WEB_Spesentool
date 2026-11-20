@@ -2,91 +2,113 @@
  * Anmeldeseite. Nach dem Login landet jede Rolle auf ihrer Startseite.
  */
 import * as api from '../api';
-import { el, feld, zeigeMeldung } from '../dom';
+import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
+import { feld, pruefeFelder } from '../formular';
+import { merkeMeldung } from '../rueckmeldung';
 import { navigiere, STARTSEITE } from '../router';
 import { anmelden } from '../session';
+import { email as emailRegel, pflicht } from '../validierung';
 
-// Demo-Personen aus prisma/seed.ts (Passwort überall "passwort")
+// Demo-Personen aus backend/prisma/seed-daten.ts (Passwort überall "passwort")
 const DEMO_LOGINS = [
   { email: 'anna.meier@firma.ch', text: 'Anna Meier, Mitarbeitende' },
-  { email: 'carla.huber@firma.ch', text: 'Carla Huber, Mitarbeitende' },
+  {
+    email: 'eva.brunner@firma.ch',
+    text: 'Eva Brunner, Mitarbeitende (zurückgewiesen)',
+  },
   { email: 'beat.keller@firma.ch', text: 'Beat Keller, Vorgesetzter' },
+  { email: 'sandra.weber@firma.ch', text: 'Sandra Weber, Vorgesetzte' },
   { email: 'lena.schmid@firma.ch', text: 'Lena Schmid, Lohnbuchhaltung' },
 ];
 
-export function loginSeite(): HTMLElement {
-  const email = el('input', {
-    id: 'f-email',
-    name: 'email',
-    type: 'email',
-    required: true,
-    autocomplete: 'username',
-  });
-  const passwort = el('input', {
-    id: 'f-passwort',
-    name: 'passwort',
-    type: 'password',
-    required: true,
-    minLength: 4,
-    autocomplete: 'current-password',
-  });
-  const knopf = el('button', { type: 'submit' }, 'Anmelden');
-  const meldung = el('p', { className: 'meldung', role: 'status' });
+interface LoginFelder {
+  email: HTMLInputElement;
+  passwort: HTMLInputElement;
+  knopf: HTMLButtonElement;
+  meldung: HTMLElement;
+}
 
+async function absenden(felder: LoginFelder): Promise<void> {
+  const gueltig = pruefeFelder([
+    [felder.email, [pflicht('E-Mail'), emailRegel()]],
+    [felder.passwort, [pflicht('Passwort')]],
+  ]);
+  if (!gueltig) return;
+  felder.knopf.disabled = true;
+  zeigeMeldung(felder.meldung, 'Anmeldung läuft …');
+  try {
+    const antwort = await api.auth.login({
+      email: felder.email.value.trim(),
+      passwort: felder.passwort.value,
+    });
+    anmelden(antwort);
+    merkeMeldung(`Angemeldet als ${antwort.user.name}.`);
+    navigiere(STARTSEITE[antwort.user.rolle]);
+  } catch (fehler) {
+    zeigeMeldung(felder.meldung, api.fehlerText(fehler), 'fehler');
+  } finally {
+    felder.knopf.disabled = false;
+  }
+}
+
+function demoListe(felder: LoginFelder): HTMLElement {
+  const eintraege = DEMO_LOGINS.map((demo) =>
+    el(
+      'li',
+      {},
+      knopf(demo.text, 'leise', () => {
+        felder.email.value = demo.email;
+        felder.passwort.value = 'passwort';
+        felder.knopf.focus();
+      }),
+    ),
+  );
+  return el(
+    'details',
+    { className: 'demo' },
+    el('summary', {}, 'Demo-Zugänge'),
+    el('p', { className: 'klein' }, 'Passwort für alle: passwort'),
+    el('ul', {}, ...eintraege),
+  );
+}
+
+/** Seite «Anmelden» mit Formular und Demo-Zugängen. */
+export function loginSeite(): HTMLElement {
+  const felder: LoginFelder = {
+    email: el('input', {
+      id: 'f-email',
+      name: 'email',
+      type: 'email',
+      required: true,
+      autocomplete: 'username',
+    }),
+    passwort: el('input', {
+      id: 'f-passwort',
+      name: 'passwort',
+      type: 'password',
+      required: true,
+      autocomplete: 'current-password',
+    }),
+    knopf: el('button', { type: 'submit' }, 'Anmelden'),
+    meldung: meldungsZeile(),
+  };
   const formular = el(
     'form',
-    { className: 'formular' },
-    feld('E-Mail', email),
-    feld('Passwort', passwort),
-    knopf,
-    meldung,
+    { className: 'formular', noValidate: true },
+    feld('E-Mail', felder.email),
+    feld('Passwort', felder.passwort),
+    felder.knopf,
+    felder.meldung,
   );
-
-  async function absenden(ereignis: SubmitEvent): Promise<void> {
+  formular.addEventListener('submit', (ereignis) => {
     ereignis.preventDefault();
-    knopf.disabled = true;
-    try {
-      const antwort = await api.auth.login({
-        email: email.value.trim(),
-        passwort: passwort.value,
-      });
-      anmelden(antwort);
-      navigiere(STARTSEITE[antwort.user.rolle]);
-    } catch (fehler) {
-      zeigeMeldung(meldung, api.fehlerText(fehler), 'fehler');
-    } finally {
-      knopf.disabled = false;
-    }
-  }
-  // "void": wir warten hier bewusst nicht auf das Promise, Fehler fängt absenden() selbst
-  formular.onsubmit = (ereignis) => void absenden(ereignis);
-
-  // Knöpfe, die das Formular mit einer Demo-Person füllen
-  const demoKnoepfe = DEMO_LOGINS.map((demo) => {
-    const demoKnopf = el(
-      'button',
-      { type: 'button', className: 'leise' },
-      demo.text,
-    );
-    demoKnopf.onclick = () => {
-      email.value = demo.email;
-      passwort.value = 'passwort';
-      passwort.focus();
-    };
-    return el('li', {}, demoKnopf);
+    void absenden(felder);
   });
-
   return el(
     'section',
     { className: 'karte schmal' },
     el('h1', {}, 'Anmelden'),
     formular,
-    el(
-      'details',
-      { className: 'demo' },
-      el('summary', {}, 'Demo-Zugänge'),
-      el('p', { className: 'klein' }, 'Passwort für alle: passwort'),
-      el('ul', {}, ...demoKnoepfe),
-    ),
+    demoListe(felder),
   );
 }
