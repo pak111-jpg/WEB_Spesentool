@@ -8,6 +8,7 @@ import { LohnbuchhaltungModule } from './lohnbuchhaltung/lohnbuchhaltung.module'
 import { PositionenModule } from './positionen/positionen.module';
 import { PrismaModule } from './prisma/prisma.module';
 
+/** Wurzelmodul: bindet Konfiguration, Datenbank und alle Fachmodule ein. */
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

@@ -3,7 +3,7 @@
  */
 import * as api from '../api';
 import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
-import { feld, pruefeFelder } from '../formular';
+import { feld, fehlerBeimFeld, pruefeFelder } from '../formular';
 import { merkeMeldung } from '../rueckmeldung';
 import { navigiere, STARTSEITE } from '../router';
 import { anmelden } from '../session';
@@ -45,7 +45,12 @@ async function absenden(felder: LoginFelder): Promise<void> {
     merkeMeldung(`Angemeldet als ${antwort.user.name}.`);
     navigiere(STARTSEITE[antwort.user.rolle]);
   } catch (fehler) {
-    zeigeMeldung(felder.meldung, api.fehlerText(fehler), 'fehler');
+    // 401 «E-Mail oder Passwort falsch» erscheint beim Feld Passwort, alles andere darunter
+    fehlerBeimFeld(
+      fehler,
+      [[/Passwort falsch/, felder.passwort]],
+      felder.meldung,
+    );
   } finally {
     felder.knopf.disabled = false;
   }

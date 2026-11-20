@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Rolle } from '../../generated/prisma/enums';
 
+/** Datenobjekt der REST-API (Anmeldung mit JWT); Felder und Beispiele in Swagger. */
 export class UserDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -31,6 +32,7 @@ export class UserDto {
   vorgesetzteId: number | null;
 }
 
+/** Datenobjekt der REST-API (Anmeldung mit JWT); Felder und Beispiele in Swagger. */
 export class LoginResponseDto {
   @ApiProperty({
     description: 'JWT für den Header `Authorization: Bearer <token>`',

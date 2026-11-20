@@ -36,6 +36,7 @@ import {
 } from './dto/lohnbuchhaltung.dto';
 import { LohnbuchhaltungService } from './lohnbuchhaltung.service';
 
+/** REST-Endpunkte: Export, Auszahlung und Auswertung der Lohnbuchhaltung (Details in Swagger unter /api). */
 @ApiTags('lohnbuchhaltung')
 @Auth(Rolle.LOHNBUCHHALTUNG)
 @Controller('lohnbuchhaltung')

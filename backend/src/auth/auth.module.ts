@@ -4,6 +4,7 @@ import { JwtModule, type JwtSignOptions } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
+/** NestJS-Modul: Anmeldung mit JWT. */
 @Global()
 @Module({
   imports: [

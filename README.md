@@ -351,8 +351,8 @@ automatisch: `npm --prefix frontend run lint` meldet 0 Probleme (Regeln in `fron
 | G3.5 | Listen und Tabellen bei 375 px lesbar | Ja | unter 640 px Kartenansicht mit Spaltentitel pro Wert, Sortier-Knöpfe als Leiste → `G3-375px/02-…`, `04-…`, `06-…` |
 | G4.1 | Konsole ohne Fehler nach vollständigem Prozessdurchlauf | Ja | Durchlauf mit allen Rollen in Chrome: 0 Fehler, 0 Warnungen → [`G4.1-konsole.png`](docs/nachweise/G4.1-konsole.png) |
 | G4.2 | nur `const`/`let`, keine Inline-Handler | Ja | ESLint `no-var`, `prefer-const`; Ereignisse nur mit `addEventListener` (ESLint verbietet `on…=`-Zuweisungen); Suche nach `var ` und `onclick`: 0 Treffer |
-| G4.3 | nur `===` und `!==` | Ja | ESLint `eqeqeq: always`, `npm run lint`: 0 Probleme |
-| G4.4 | keine Funktion länger als 40 Zeilen | Ja | ESLint `max-lines-per-function: 40` (inkl. Leer- und Kommentarzeilen), `npm run lint`: 0 Probleme |
+| G4.3 | nur `===` und `!==` | Ja | ESLint `eqeqeq: always` in Frontend und Backend, `npm run lint`: 0 Probleme |
+| G4.4 | keine Funktion länger als 40 Zeilen | Ja | ESLint `max-lines-per-function: 40` (inkl. Leer- und Kommentarzeilen) in Frontend und Backend, `npm run lint`: 0 Probleme |
 | G4.5 | Ausgabe mit `textContent`/`createElement`, kein `innerHTML` | Ja | alle Elemente über `el()` in `dom.ts` (`createElement`, Text mit `append`); ESLint verbietet `innerHTML`; Suche nach `innerHTML`: 0 Treffer |
 | G5.1 | Lighthouse Accessibility Startseite ≥ 80 | Ja | Accessibility **100** (Best Practices 100) → [`G5.1-lighthouse-startseite.png`](docs/nachweise/G5.1-lighthouse-startseite.png) |
 | G5.2 | Kernprozess mit Tastatur bedienbar | Ja | ganzer Prozess (korrigieren, einreichen, genehmigen, auszahlen) nur mit Tab, Enter und Tippen → [`G5.2-tastatur-protokoll.txt`](docs/nachweise/G5.2-tastatur-protokoll.txt) |

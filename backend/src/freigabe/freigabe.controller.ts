@@ -32,6 +32,7 @@ import {
 } from './dto/freigabe.dto';
 import { FreigabeService } from './freigabe.service';
 
+/** REST-Endpunkte: Prüfen und Entscheiden durch Vorgesetzte (Details in Swagger unter /api). */
 @ApiTags('freigabe')
 @Auth(Rolle.VORGESETZTE)
 @Controller('freigabe')

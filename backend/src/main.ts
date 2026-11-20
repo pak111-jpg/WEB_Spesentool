@@ -1,21 +1,10 @@
-import { ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.enableCors();
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-
+/** Swagger-Dokumentation der REST-API unter /api (OpenAPI-JSON unter /api-json). */
+function swaggerEinrichten(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('Spesenportal API')
     .setDescription(
@@ -46,6 +35,21 @@ async function bootstrap() {
     jsonDocumentUrl: 'api-json',
     swaggerOptions: { persistAuthorization: true },
   });
+}
+
+/** Startet die API: CORS für das Frontend, Validierung aller Eingaben, Swagger. */
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+  swaggerEinrichten(app);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

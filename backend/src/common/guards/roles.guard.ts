@@ -9,6 +9,7 @@ import { Rolle } from '../../generated/prisma/enums';
 import { AuthUser } from '../decorators/current-user.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
+/** Lässt nur Rollen durch, die mit @Auth(...) erlaubt sind (sonst 403). */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

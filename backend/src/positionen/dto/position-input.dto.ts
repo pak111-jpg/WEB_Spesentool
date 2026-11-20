@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { Kategorie } from '../../generated/prisma/enums';
 
+/** Datenobjekt der REST-API (Positionen eines Antrags); Felder und Beispiele in Swagger. */
 export class CreatePositionDto {
   @ApiProperty({
     example: '2026-11-03',
@@ -55,4 +56,5 @@ export class CreatePositionDto {
   betrag?: number;
 }
 
+/** Datenobjekt der REST-API (Positionen eines Antrags); Felder und Beispiele in Swagger. */
 export class UpdatePositionDto extends PartialType(CreatePositionDto) {}

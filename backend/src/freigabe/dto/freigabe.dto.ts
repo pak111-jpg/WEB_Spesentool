@@ -10,6 +10,7 @@ import {
 import { AntragDto } from '../../antraege/dto/antrag.dto';
 import { AntragStatus } from '../../generated/prisma/enums';
 
+/** Datenobjekt der REST-API (Prüfen und Entscheiden durch Vorgesetzte); Felder und Beispiele in Swagger. */
 export class BegruendungDto {
   @ApiProperty({
     example: 'Beleg zu Position 2 ist unleserlich, bitte neu fotografieren.',
@@ -24,6 +25,7 @@ export class BegruendungDto {
   begruendung: string;
 }
 
+/** Datenobjekt der REST-API (Prüfen und Entscheiden durch Vorgesetzte); Felder und Beispiele in Swagger. */
 export class OffeneAntraegeQueryDto {
   @ApiPropertyOptional({
     description:
@@ -35,6 +37,7 @@ export class OffeneAntraegeQueryDto {
   nurUeberfaellig?: boolean;
 }
 
+/** Datenobjekt der REST-API (Prüfen und Entscheiden durch Vorgesetzte); Felder und Beispiele in Swagger. */
 export class TeamAntraegeQueryDto {
   @ApiPropertyOptional({ enum: AntragStatus, enumName: 'AntragStatus' })
   @IsOptional()
@@ -42,6 +45,7 @@ export class TeamAntraegeQueryDto {
   status?: AntragStatus;
 }
 
+/** Datenobjekt der REST-API (Prüfen und Entscheiden durch Vorgesetzte); Felder und Beispiele in Swagger. */
 export class OffenerAntragDto extends AntragDto {
   @ApiProperty({
     example: 3,

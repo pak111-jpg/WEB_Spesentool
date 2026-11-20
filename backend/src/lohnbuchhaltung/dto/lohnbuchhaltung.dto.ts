@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { AntragStatus } from '../../generated/prisma/enums';
 
+/** Datenobjekt der REST-API (Export, Auszahlung und Auswertung der Lohnbuchhaltung); Felder und Beispiele in Swagger. */
 export class MonatQueryDto {
   @ApiProperty({ example: 2026 })
   @IsInt()
@@ -16,6 +17,7 @@ export class MonatQueryDto {
   monat: number;
 }
 
+/** Datenobjekt der REST-API (Export, Auszahlung und Auswertung der Lohnbuchhaltung); Felder und Beispiele in Swagger. */
 export class AbrechnungenQueryDto {
   @ApiPropertyOptional({ example: 2026 })
   @IsOptional()
@@ -40,6 +42,7 @@ export class AbrechnungenQueryDto {
   status?: AntragStatus;
 }
 
+/** Datenobjekt der REST-API (Export, Auszahlung und Auswertung der Lohnbuchhaltung); Felder und Beispiele in Swagger. */
 export class AusbezahltErgebnisDto {
   @ApiProperty({
     example: 4,
@@ -51,6 +54,7 @@ export class AusbezahltErgebnisDto {
   antragIds: number[];
 }
 
+/** Datenobjekt der REST-API (Export, Auszahlung und Auswertung der Lohnbuchhaltung); Felder und Beispiele in Swagger. */
 export class KostenstellenAuswertungDto {
   @ApiProperty({ example: 'KST-100' })
   kostenstelle: string;

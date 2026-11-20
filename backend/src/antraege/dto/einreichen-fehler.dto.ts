@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+/** Datenobjekt der REST-API (Spesenanträge der Mitarbeitenden); Felder und Beispiele in Swagger. */
 export class PositionFehlerDto {
   @ApiProperty({
     example: 12,

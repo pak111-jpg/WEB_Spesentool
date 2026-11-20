@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { AuthUser } from '../decorators/current-user.decorator';
 
+/** Prüft das JWT im Header Authorization und legt die Person in request.user ab (sonst 401). */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}

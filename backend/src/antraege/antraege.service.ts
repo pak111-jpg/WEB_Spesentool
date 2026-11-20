@@ -22,6 +22,7 @@ import {
 } from './statusregeln';
 import { statusWechseln } from './statuswechsel';
 
+/** Geschäftslogik: Spesenanträge der Mitarbeitenden. */
 @Injectable()
 export class AntraegeService {
   constructor(private readonly prisma: PrismaService) {}
@@ -97,14 +98,31 @@ export class AntraegeService {
    */
   async einreichen(user: AuthUser, antragId: number): Promise<AntragDetailDto> {
     const antrag = await this.ladeEigenen(user.id, antragId);
-    this.pruefeBearbeitbar(antrag);
+    this.pruefeEinreichbar(antrag);
+    const eingereicht = await statusWechseln(this.prisma, {
+      antragId,
+      von: antrag.status,
+      nach: AntragStatus.EINGEREICHT,
+      user,
+      daten: {
+        eingereichtAm: new Date(),
+        // Entscheid der vorherigen Runde zurücksetzen; er bleibt im Verlauf erhalten
+        begruendung: null,
+        entschiedenVonId: null,
+        entschiedenAm: null,
+      },
+    });
+    return toAntragDetailDto(eingereicht);
+  }
 
+  /** Bearbeitbar, vorgesetzte Person zugeordnet und jede Position vollständig? Sonst 409 bzw. 400. */
+  private pruefeEinreichbar(antrag: AntragMitPositionen): void {
+    this.pruefeBearbeitbar(antrag);
     if (antrag.mitarbeitende.vorgesetzteId === null) {
       throw new ConflictException(
         'Dir ist keine vorgesetzte Person zugeordnet. Die Abrechnung kann erst eingereicht werden, wenn jemand entscheiden kann.',
       );
     }
-
     const probleme = pruefeVollstaendigkeit(
       antrag.positionen.map((position) => ({
         id: position.id,
@@ -121,21 +139,6 @@ export class AntraegeService {
         probleme,
       });
     }
-
-    const eingereicht = await statusWechseln(this.prisma, {
-      antragId,
-      von: antrag.status,
-      nach: AntragStatus.EINGEREICHT,
-      user,
-      daten: {
-        eingereichtAm: new Date(),
-        // Entscheid der vorherigen Runde zurücksetzen; er bleibt im Verlauf erhalten
-        begruendung: null,
-        entschiedenVonId: null,
-        entschiedenAm: null,
-      },
-    });
-    return toAntragDetailDto(eingereicht);
   }
 
   /** Lädt einen Antrag und stellt sicher, dass er der angemeldeten Person gehört. */

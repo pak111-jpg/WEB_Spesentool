@@ -21,6 +21,7 @@ import {
   KostenstellenAuswertungDto,
 } from './dto/lohnbuchhaltung.dto';
 
+/** Geschäftslogik: Export, Auszahlung und Auswertung der Lohnbuchhaltung. */
 @Injectable()
 export class LohnbuchhaltungService {
   constructor(private readonly prisma: PrismaService) {}
