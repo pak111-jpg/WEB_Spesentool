@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AntragStatus, Kategorie } from '../../generated/prisma/enums';
+import { AntragStatus, Kategorie, Rolle } from '../../generated/prisma/enums';
 
 export class BelegDto {
   @ApiProperty({ example: 7 })
@@ -137,7 +137,46 @@ export class AntragDto {
   geaendertAm: Date;
 }
 
+/** Ein Eintrag im Verlauf eines Antrags (U2.4). */
+export class StatusAenderungDto {
+  @ApiProperty({ example: 17 })
+  id: number;
+
+  @ApiPropertyOptional({
+    enum: AntragStatus,
+    enumName: 'AntragStatus',
+    nullable: true,
+    description: 'null beim Anlegen des Antrags',
+  })
+  vonStatus: AntragStatus | null;
+
+  @ApiProperty({
+    enum: AntragStatus,
+    enumName: 'AntragStatus',
+    example: AntragStatus.EINGEREICHT,
+  })
+  nachStatus: AntragStatus;
+
+  @ApiProperty({ example: '2026-11-30T09:00:00.000Z' })
+  zeitpunkt: Date;
+
+  @ApiProperty({ type: PersonKurzDto })
+  person: PersonKurzDto;
+
+  @ApiProperty({ enum: Rolle, enumName: 'Rolle', example: Rolle.MITARBEITENDE })
+  rolle: Rolle;
+
+  @ApiPropertyOptional({ nullable: true, example: 'Beleg unleserlich' })
+  begruendung: string | null;
+}
+
 export class AntragDetailDto extends AntragDto {
   @ApiProperty({ type: [PositionDto] })
   positionen: PositionDto[];
+
+  @ApiProperty({
+    type: [StatusAenderungDto],
+    description: 'Alle Statusänderungen, älteste zuerst',
+  })
+  verlauf: StatusAenderungDto[];
 }

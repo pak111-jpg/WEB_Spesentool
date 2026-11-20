@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AuthUser } from '../common/decorators/current-user.decorator';
 import { AntragStatus } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -14,26 +15,26 @@ import {
 } from './antraege.mapper';
 import { AntragDetailDto, AntragDto } from './dto/antrag.dto';
 import { CreateAntragDto } from './dto/create-antrag.dto';
-import { PositionFehlerDto } from './dto/einreichen-fehler.dto';
-
-/** Zustände, in denen Mitarbeitende den Antrag noch bearbeiten dürfen. */
-export const BEARBEITBARE_STATUS: AntragStatus[] = [
-  AntragStatus.ERFASST,
-  AntragStatus.ZURUECKGEWIESEN,
-];
+import {
+  BEARBEITBARE_STATUS,
+  istBearbeitbar,
+  pruefeVollstaendigkeit,
+} from './statusregeln';
+import { statusWechseln } from './statuswechsel';
 
 @Injectable()
 export class AntraegeService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Neuen Antrag für einen Monat anlegen (Status ERFASST, erster Eintrag im Verlauf). */
   async erstellen(
-    userId: number,
+    user: AuthUser,
     dto: CreateAntragDto,
   ): Promise<AntragDetailDto> {
     const vorhanden = await this.prisma.spesenantrag.findUnique({
       where: {
         mitarbeitendeId_jahr_monat: {
-          mitarbeitendeId: userId,
+          mitarbeitendeId: user.id,
           jahr: dto.jahr,
           monat: dto.monat,
         },
@@ -41,16 +42,29 @@ export class AntraegeService {
     });
     if (vorhanden) {
       throw new ConflictException(
-        `Für ${dto.monat}/${dto.jahr} existiert bereits ein Antrag (ID ${vorhanden.id})`,
+        `Für ${dto.monat}/${dto.jahr} existiert bereits eine Abrechnung (ID ${vorhanden.id})`,
       );
     }
     const antrag = await this.prisma.spesenantrag.create({
-      data: { mitarbeitendeId: userId, jahr: dto.jahr, monat: dto.monat },
+      data: {
+        mitarbeitendeId: user.id,
+        jahr: dto.jahr,
+        monat: dto.monat,
+        verlauf: {
+          create: {
+            vonStatus: null,
+            nachStatus: AntragStatus.ERFASST,
+            userId: user.id,
+            rolle: user.rolle,
+          },
+        },
+      },
       include: antragInclude,
     });
     return toAntragDetailDto(antrag);
   }
 
+  /** MA-4: Eigene Anträge, neuester Monat zuerst. */
   async meine(userId: number): Promise<AntragDto[]> {
     const antraege = await this.prisma.spesenantrag.findMany({
       where: { mitarbeitendeId: userId },
@@ -60,29 +74,46 @@ export class AntraegeService {
     return antraege.map(toAntragDto);
   }
 
+  /** Eigenen Antrag mit Positionen und Verlauf laden. */
   async einer(userId: number, antragId: number): Promise<AntragDetailDto> {
     return toAntragDetailDto(await this.ladeEigenen(userId, antragId));
   }
 
+  /** Eigenen Antrag löschen, solange er noch nie eingereicht wurde (Status ERFASST). */
   async loeschen(userId: number, antragId: number): Promise<void> {
     const antrag = await this.ladeEigenen(userId, antragId);
     if (antrag.status !== AntragStatus.ERFASST) {
       throw new ConflictException(
-        'Nur Anträge im Status ERFASST können gelöscht werden',
+        'Nur Abrechnungen im Status ERFASST können gelöscht werden',
       );
     }
     await this.prisma.spesenantrag.delete({ where: { id: antragId } });
   }
 
   /**
-   * Monatsabrechnung einreichen (MA-3).
-   * Nur möglich, wenn jede Position Datum, Betrag, Zweck und Beleg hat.
+   * MA-3: Monatsabrechnung einreichen.
+   * Nur möglich, wenn jede Position Datum, Betrag, Zweck und Beleg hat und der Person eine
+   * vorgesetzte Person zugeordnet ist, die entscheiden kann.
    */
-  async einreichen(userId: number, antragId: number): Promise<AntragDetailDto> {
-    const antrag = await this.ladeEigenen(userId, antragId);
+  async einreichen(user: AuthUser, antragId: number): Promise<AntragDetailDto> {
+    const antrag = await this.ladeEigenen(user.id, antragId);
     this.pruefeBearbeitbar(antrag);
 
-    const probleme = this.pruefeVollstaendigkeit(antrag);
+    if (antrag.mitarbeitende.vorgesetzteId === null) {
+      throw new ConflictException(
+        'Dir ist keine vorgesetzte Person zugeordnet. Die Abrechnung kann erst eingereicht werden, wenn jemand entscheiden kann.',
+      );
+    }
+
+    const probleme = pruefeVollstaendigkeit(
+      antrag.positionen.map((position) => ({
+        id: position.id,
+        datum: position.datum,
+        betrag: Number(position.betrag),
+        zweck: position.zweck,
+        hatBeleg: position.beleg !== null,
+      })),
+    );
     if (probleme.length > 0) {
       throw new BadRequestException({
         statusCode: 400,
@@ -91,17 +122,18 @@ export class AntraegeService {
       });
     }
 
-    const eingereicht = await this.prisma.spesenantrag.update({
-      where: { id: antragId },
-      data: {
-        status: AntragStatus.EINGEREICHT,
+    const eingereicht = await statusWechseln(this.prisma, {
+      antragId,
+      von: antrag.status,
+      nach: AntragStatus.EINGEREICHT,
+      user,
+      daten: {
         eingereichtAm: new Date(),
-        // Entscheid der vorherigen Runde zurücksetzen
+        // Entscheid der vorherigen Runde zurücksetzen; er bleibt im Verlauf erhalten
         begruendung: null,
         entschiedenVonId: null,
         entschiedenAm: null,
       },
-      include: antragInclude,
     });
     return toAntragDetailDto(eingereicht);
   }
@@ -121,34 +153,12 @@ export class AntraegeService {
     return antrag;
   }
 
+  /** Wirft 409, wenn der Antrag nicht (mehr) bearbeitet werden darf. */
   pruefeBearbeitbar(antrag: { status: AntragStatus }): void {
-    if (!BEARBEITBARE_STATUS.includes(antrag.status)) {
+    if (!istBearbeitbar(antrag.status)) {
       throw new ConflictException(
         `Antrag im Status ${antrag.status} kann nicht bearbeitet werden (nur ${BEARBEITBARE_STATUS.join(', ')})`,
       );
     }
-  }
-
-  private pruefeVollstaendigkeit(
-    antrag: AntragMitPositionen,
-  ): PositionFehlerDto[] {
-    const probleme: PositionFehlerDto[] = [];
-    if (antrag.positionen.length === 0) {
-      probleme.push({
-        positionId: null,
-        fehler: ['Der Antrag enthält keine Positionen'],
-      });
-    }
-    for (const position of antrag.positionen) {
-      const fehler: string[] = [];
-      if (!position.datum) fehler.push('Datum fehlt');
-      if (Number(position.betrag) <= 0) fehler.push('Betrag fehlt oder ist 0');
-      if (!position.zweck?.trim()) fehler.push('Zweck fehlt');
-      if (!position.beleg) fehler.push('Beleg fehlt');
-      if (fehler.length > 0) {
-        probleme.push({ positionId: position.id, fehler });
-      }
-    }
-    return probleme;
   }
 }

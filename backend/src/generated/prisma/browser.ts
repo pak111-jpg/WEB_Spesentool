@@ -36,3 +36,8 @@ export type Position = Prisma.PositionModel
  * 
  */
 export type Beleg = Prisma.BelegModel
+/**
+ * Model StatusAenderung
+ * 
+ */
+export type StatusAenderung = Prisma.StatusAenderungModel

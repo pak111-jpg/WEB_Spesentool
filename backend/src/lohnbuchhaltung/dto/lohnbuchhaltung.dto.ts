@@ -32,7 +32,8 @@ export class AbrechnungenQueryDto {
   @ApiPropertyOptional({
     enum: AntragStatus,
     enumName: 'AntragStatus',
-    description: 'Standard: GENEHMIGT (also noch nicht ausbezahlt)',
+    description:
+      'GENEHMIGT oder AUSBEZAHLT; ohne Angabe beide. Andere Status sieht die Lohnbuchhaltung nicht.',
   })
   @IsOptional()
   @IsEnum(AntragStatus)

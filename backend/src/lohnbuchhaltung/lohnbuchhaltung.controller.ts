@@ -45,7 +45,7 @@ export class LohnbuchhaltungController {
   @Get('abrechnungen')
   @ApiOperation({
     summary:
-      'Abrechnungen auflisten (Standard: genehmigt und noch nicht ausbezahlt)',
+      'Genehmigte und ausbezahlte Abrechnungen auflisten (LB sieht keine anderen Status)',
     description:
       'Filter nach Jahr, Monat und Status. Ausbezahlte Abrechnungen sind klar am Status AUSBEZAHLT erkennbar.',
   })
@@ -105,7 +105,7 @@ export class LohnbuchhaltungController {
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<AntragDetailDto> {
-    return this.service.alsAusbezahltMarkieren(user.id, id);
+    return this.service.alsAusbezahltMarkieren(user, id);
   }
 
   @Post('monat/ausbezahlt')
@@ -119,7 +119,7 @@ export class LohnbuchhaltungController {
     @CurrentUser() user: AuthUser,
     @Body() dto: MonatQueryDto,
   ): Promise<AusbezahltErgebnisDto> {
-    return this.service.monatAusbezahlen(user.id, dto.jahr, dto.monat);
+    return this.service.monatAusbezahlen(user, dto.jahr, dto.monat);
   }
 
   @Get('auswertung')

@@ -399,7 +399,8 @@ export const ModelName = {
   User: 'User',
   Spesenantrag: 'Spesenantrag',
   Position: 'Position',
-  Beleg: 'Beleg'
+  Beleg: 'Beleg',
+  StatusAenderung: 'StatusAenderung'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "spesenantrag" | "position" | "beleg"
+    modelProps: "user" | "spesenantrag" | "position" | "beleg" | "statusAenderung"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -683,6 +684,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StatusAenderung: {
+      payload: Prisma.$StatusAenderungPayload<ExtArgs>
+      fields: Prisma.StatusAenderungFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StatusAenderungFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StatusAenderungFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        findFirst: {
+          args: Prisma.StatusAenderungFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StatusAenderungFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        findMany: {
+          args: Prisma.StatusAenderungFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>[]
+        }
+        create: {
+          args: Prisma.StatusAenderungCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        createMany: {
+          args: Prisma.StatusAenderungCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.StatusAenderungDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        update: {
+          args: Prisma.StatusAenderungUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        deleteMany: {
+          args: Prisma.StatusAenderungDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StatusAenderungUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.StatusAenderungUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatusAenderungPayload>
+        }
+        aggregate: {
+          args: Prisma.StatusAenderungAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStatusAenderung>
+        }
+        groupBy: {
+          args: Prisma.StatusAenderungGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StatusAenderungGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StatusAenderungCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StatusAenderungCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -784,6 +851,20 @@ export const BelegScalarFieldEnum = {
 export type BelegScalarFieldEnum = (typeof BelegScalarFieldEnum)[keyof typeof BelegScalarFieldEnum]
 
 
+export const StatusAenderungScalarFieldEnum = {
+  id: 'id',
+  antragId: 'antragId',
+  vonStatus: 'vonStatus',
+  nachStatus: 'nachStatus',
+  zeitpunkt: 'zeitpunkt',
+  userId: 'userId',
+  rolle: 'rolle',
+  begruendung: 'begruendung'
+} as const
+
+export type StatusAenderungScalarFieldEnum = (typeof StatusAenderungScalarFieldEnum)[keyof typeof StatusAenderungScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -832,6 +913,13 @@ export const BelegOrderByRelevanceFieldEnum = {
 } as const
 
 export type BelegOrderByRelevanceFieldEnum = (typeof BelegOrderByRelevanceFieldEnum)[keyof typeof BelegOrderByRelevanceFieldEnum]
+
+
+export const StatusAenderungOrderByRelevanceFieldEnum = {
+  begruendung: 'begruendung'
+} as const
+
+export type StatusAenderungOrderByRelevanceFieldEnum = (typeof StatusAenderungOrderByRelevanceFieldEnum)[keyof typeof StatusAenderungOrderByRelevanceFieldEnum]
 
 
 
@@ -1050,6 +1138,7 @@ export type GlobalOmitConfig = {
   spesenantrag?: Prisma.SpesenantragOmit
   position?: Prisma.PositionOmit
   beleg?: Prisma.BelegOmit
+  statusAenderung?: Prisma.StatusAenderungOmit
 }
 
 /* Types for Logging */

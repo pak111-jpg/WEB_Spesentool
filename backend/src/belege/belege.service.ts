@@ -7,16 +7,21 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { access, mkdir, unlink, writeFile } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { toBelegDto } from '../antraege/antraege.mapper';
-import { BEARBEITBARE_STATUS } from '../antraege/antraege.service';
+import {
+  istBearbeitbar,
+  SICHTBAR_FUER_LOHNBUCHHALTUNG,
+  SICHTBAR_FUER_VORGESETZTE,
+} from '../antraege/statusregeln';
 import { BelegDto } from '../antraege/dto/antrag.dto';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { Rolle } from '../generated/prisma/enums';
 import { PrismaService } from '../prisma/prisma.service';
 
+/** Erlaubte Dateitypen für Belege (Fotos und PDF). */
 export const ERLAUBTE_MIME_TYPES = [
   'image/jpeg',
   'image/png',
@@ -24,8 +29,10 @@ export const ERLAUBTE_MIME_TYPES = [
   'image/heic',
   'application/pdf',
 ];
+/** Maximale Grösse eines Belegs: 10 MB. */
 export const MAX_BELEG_BYTES = 10 * 1024 * 1024;
 
+/** Datei, wie sie Multer aus dem Upload liefert. */
 export interface HochgeladeneDatei {
   originalname: string;
   mimetype: string;
@@ -66,7 +73,7 @@ export class BelegeService {
     if (!position) {
       throw new NotFoundException(`Position ${positionId} nicht gefunden`);
     }
-    if (!BEARBEITBARE_STATUS.includes(position.antrag.status)) {
+    if (!istBearbeitbar(position.antrag.status)) {
       throw new ConflictException(
         `Antrag im Status ${position.antrag.status} kann nicht bearbeitet werden`,
       );
@@ -96,7 +103,7 @@ export class BelegeService {
 
   /**
    * LB-2 / VG-2: Beleg abrufen. Erlaubt für die Person selbst, ihre vorgesetzte Person
-   * und die Lohnbuchhaltung.
+   * (sobald eingereicht) und die Lohnbuchhaltung (sobald genehmigt).
    */
   async herunterladen(
     user: AuthUser,
@@ -111,22 +118,33 @@ export class BelegeService {
     if (!beleg) {
       throw new NotFoundException(`Beleg ${belegId} nicht gefunden`);
     }
-    const mitarbeitende = beleg.position.antrag.mitarbeitende;
+    const { mitarbeitende, status } = beleg.position.antrag;
     const darf =
-      user.rolle === Rolle.LOHNBUCHHALTUNG ||
       mitarbeitende.id === user.id ||
+      (user.rolle === Rolle.LOHNBUCHHALTUNG &&
+        SICHTBAR_FUER_LOHNBUCHHALTUNG.includes(status)) ||
       (user.rolle === Rolle.VORGESETZTE &&
-        mitarbeitende.vorgesetzteId === user.id);
+        mitarbeitende.vorgesetzteId === user.id &&
+        SICHTBAR_FUER_VORGESETZTE.includes(status));
     if (!darf) {
       throw new NotFoundException(`Beleg ${belegId} nicht gefunden`);
     }
+    const datei = join(this.uploadDir, beleg.pfad);
+    try {
+      await access(datei);
+    } catch {
+      throw new NotFoundException(
+        'Die Belegdatei fehlt auf dem Server. Bitte den Beleg neu hochladen lassen.',
+      );
+    }
     return {
-      stream: createReadStream(join(this.uploadDir, beleg.pfad)),
+      stream: createReadStream(datei),
       dateiname: beleg.dateiname,
       mimeType: beleg.mimeType,
     };
   }
 
+  /** Beleg entfernen, solange der Antrag bearbeitbar ist. */
   async loeschen(userId: number, belegId: number): Promise<void> {
     const beleg = await this.prisma.beleg.findFirst({
       where: { id: belegId, position: { antrag: { mitarbeitendeId: userId } } },
@@ -135,7 +153,7 @@ export class BelegeService {
     if (!beleg) {
       throw new NotFoundException(`Beleg ${belegId} nicht gefunden`);
     }
-    if (!BEARBEITBARE_STATUS.includes(beleg.position.antrag.status)) {
+    if (!istBearbeitbar(beleg.position.antrag.status)) {
       throw new ConflictException(
         `Antrag im Status ${beleg.position.antrag.status} kann nicht bearbeitet werden`,
       );
@@ -144,6 +162,7 @@ export class BelegeService {
     await this.dateiLoeschen(beleg.pfad);
   }
 
+  /** Datei im Upload-Ordner löschen; fehlt sie schon, ist das kein Fehler. */
   async dateiLoeschen(pfad: string): Promise<void> {
     try {
       await unlink(join(this.uploadDir, pfad));

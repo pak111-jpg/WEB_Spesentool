@@ -53,7 +53,8 @@ export const ModelName = {
   User: 'User',
   Spesenantrag: 'Spesenantrag',
   Position: 'Position',
-  Beleg: 'Beleg'
+  Beleg: 'Beleg',
+  StatusAenderung: 'StatusAenderung'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -134,6 +135,20 @@ export const BelegScalarFieldEnum = {
 export type BelegScalarFieldEnum = (typeof BelegScalarFieldEnum)[keyof typeof BelegScalarFieldEnum]
 
 
+export const StatusAenderungScalarFieldEnum = {
+  id: 'id',
+  antragId: 'antragId',
+  vonStatus: 'vonStatus',
+  nachStatus: 'nachStatus',
+  zeitpunkt: 'zeitpunkt',
+  userId: 'userId',
+  rolle: 'rolle',
+  begruendung: 'begruendung'
+} as const
+
+export type StatusAenderungScalarFieldEnum = (typeof StatusAenderungScalarFieldEnum)[keyof typeof StatusAenderungScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -182,4 +197,11 @@ export const BelegOrderByRelevanceFieldEnum = {
 } as const
 
 export type BelegOrderByRelevanceFieldEnum = (typeof BelegOrderByRelevanceFieldEnum)[keyof typeof BelegOrderByRelevanceFieldEnum]
+
+
+export const StatusAenderungOrderByRelevanceFieldEnum = {
+  begruendung: 'begruendung'
+} as const
+
+export type StatusAenderungOrderByRelevanceFieldEnum = (typeof StatusAenderungOrderByRelevanceFieldEnum)[keyof typeof StatusAenderungOrderByRelevanceFieldEnum]
 
