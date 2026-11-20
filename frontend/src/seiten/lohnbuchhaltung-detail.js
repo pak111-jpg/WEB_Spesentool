@@ -2,24 +2,19 @@
  * Lohnbuchhaltung: eine Abrechnung mit Positionen und Belegen einsehen (LB-2)
  * und einzeln als ausbezahlt markieren (LB-3).
  */
-import * as api from '../api';
-import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
-import { monatName } from '../format';
+import * as api from '../api.js';
+import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom.js';
+import { monatName } from '../format.js';
 import {
   antragKopf,
   positionenTabelle,
   verlaufKarte,
-} from '../komponenten/antrag-ansicht';
-import { kannAusbezahlen } from '../regeln';
-import { merkeMeldung } from '../rueckmeldung';
-import { neuLaden } from '../router';
-import type { AntragDetail } from '../typen';
+} from '../komponenten/antrag-ansicht.js';
+import { kannAusbezahlen } from '../regeln.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { neuLaden } from '../router.js';
 
-async function ausbezahlen(
-  antrag: AntragDetail,
-  knopfEl: HTMLButtonElement,
-  meldung: HTMLElement,
-): Promise<void> {
+async function ausbezahlen(antrag, knopfEl, meldung) {
   knopfEl.disabled = true; // gegen Doppelklick
   try {
     await api.lohnbuchhaltung.ausbezahlt(antrag.id);
@@ -35,12 +30,10 @@ async function ausbezahlen(
 }
 
 /** Seite «Abrechnung» der Lohnbuchhaltung. */
-export async function lohnbuchhaltungDetailSeite([
-  id,
-]: string[]): Promise<HTMLElement> {
+export async function lohnbuchhaltungDetailSeite([id]) {
   const antrag = await api.lohnbuchhaltung.eine(Number(id));
   const meldung = meldungsZeile();
-  const ausbezahltKnopf: HTMLButtonElement = knopf(
+  const ausbezahltKnopf = knopf(
     'Als ausbezahlt markieren',
     '',
     () => void ausbezahlen(antrag, ausbezahltKnopf, meldung),

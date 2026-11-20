@@ -3,34 +3,31 @@
  * Drei Ausgänge: genehmigen, zurückweisen (Korrektur möglich) oder ablehnen (endgültig).
  * Zurückweisen und Ablehnen brauchen eine Begründung; fehlt sie, steht die Meldung beim Feld.
  */
-import * as api from '../api';
-import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom';
-import { monatName } from '../format';
-import { feld, pruefeFelder } from '../formular';
+import * as api from '../api.js';
+import { el, knopf, meldungsZeile, zeigeMeldung } from '../dom.js';
+import { monatName } from '../format.js';
+import { feld, pruefeFelder } from '../formular.js';
 import {
   antragKopf,
   positionenTabelle,
   verlaufKarte,
-} from '../komponenten/antrag-ansicht';
-import { kannEntscheiden } from '../regeln';
-import { merkeMeldung } from '../rueckmeldung';
-import { neuLaden } from '../router';
-import type { AntragDetail } from '../typen';
-import { minLaenge, pflicht } from '../validierung';
+} from '../komponenten/antrag-ansicht.js';
+import { kannEntscheiden } from '../regeln.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { neuLaden } from '../router.js';
 
-interface Entscheid {
-  antrag: AntragDetail;
-  begruendung: HTMLTextAreaElement;
-  knoepfe: HTMLButtonElement[];
-  meldung: HTMLElement;
-}
+import { minLaenge, pflicht } from '../validierung.js';
+
+/**
+ * @typedef {Object} Entscheid
+ * @property {AntragDetail} antrag
+ * @property {HTMLTextAreaElement} begruendung
+ * @property {HTMLButtonElement[]} knoepfe
+ * @property {HTMLElement} meldung
+ */
 
 /** Führt einen Entscheid aus; die Knöpfe sind währenddessen gesperrt (kein Doppelklick). */
-async function entscheiden(
-  e: Entscheid,
-  aktion: () => Promise<unknown>,
-  bestaetigung: string,
-): Promise<void> {
+async function entscheiden(e, aktion, bestaetigung) {
   e.knoepfe.forEach((k) => (k.disabled = true));
   try {
     await aktion();
@@ -42,13 +39,13 @@ async function entscheiden(
   }
 }
 
-function begruendungGueltig(e: Entscheid): boolean {
+function begruendungGueltig(e) {
   return pruefeFelder([
     [e.begruendung, [pflicht('Begründung'), minLaenge(5, 'Die Begründung')]],
   ]);
 }
 
-function knoepfeBauen(e: Entscheid): HTMLButtonElement[] {
+function knoepfeBauen(e) {
   const { id, mitarbeitende } = e.antrag;
   const monat = monatName(e.antrag.jahr, e.antrag.monat);
   const text = () => e.begruendung.value.trim();
@@ -88,7 +85,7 @@ function knoepfeBauen(e: Entscheid): HTMLButtonElement[] {
   ];
 }
 
-function entscheidKarte(antrag: AntragDetail): HTMLElement {
+function entscheidKarte(antrag) {
   const begruendung = el('textarea', {
     id: 'f-begruendung',
     name: 'begruendung',
@@ -96,7 +93,7 @@ function entscheidKarte(antrag: AntragDetail): HTMLElement {
     maxLength: 1000,
     minLength: 5,
   });
-  const e: Entscheid = {
+  const e = {
     antrag,
     begruendung,
     knoepfe: [],
@@ -122,9 +119,7 @@ function entscheidKarte(antrag: AntragDetail): HTMLElement {
 }
 
 /** Seite «Antrag prüfen» der Vorgesetzten. */
-export async function freigabeDetailSeite([
-  id,
-]: string[]): Promise<HTMLElement> {
+export async function freigabeDetailSeite([id]) {
   const antrag = await api.freigabe.einer(Number(id));
   const meldung = meldungsZeile();
   return el(

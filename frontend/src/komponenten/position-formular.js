@@ -3,65 +3,60 @@
  * Bei FAHRT zeigt es ein Kilometerfeld mit Vorschau; den Betrag rechnet das Backend.
  * Jede Eingabe wird vor dem Senden geprüft, Fehler erscheinen direkt beim Feld.
  */
-import * as api from '../api';
-import { auswahl, el, meldungsZeile } from '../dom';
-import { chf, heuteIso, monatsGrenzen } from '../format';
+import * as api from '../api.js';
+import { auswahl, el, meldungsZeile } from '../dom.js';
+import { chf, heuteIso, monatsGrenzen } from '../format.js';
 import {
   eingabe,
   feld,
   feldFehler,
   fehlerBeimFeld,
   pruefeFelder,
-  type FeldPruefung,
-} from '../formular';
-import { merkeMeldung } from '../rueckmeldung';
-import { neuLaden } from '../router';
-import { KATEGORIE_TEXT } from '../texte';
-import {
-  ALLE_KATEGORIEN,
-  KATEGORIE,
-  type AntragDetail,
-  type Kategorie,
-  type Position,
-  type PositionEingabe,
-} from '../typen';
+} from '../formular.js';
+import { merkeMeldung } from '../rueckmeldung.js';
+import { neuLaden } from '../router.js';
+import { KATEGORIE_TEXT } from '../texte.js';
+import { ALLE_KATEGORIEN, KATEGORIE } from '../typen.js';
 import {
   datumZwischen,
   minLaenge,
   pflicht,
   positiveZahl,
-} from '../validierung';
+} from '../validierung.js';
 
-interface Felder {
-  datum: HTMLInputElement;
-  kategorie: HTMLSelectElement;
-  zweck: HTMLInputElement;
-  kilometer: HTMLInputElement;
-  betrag: HTMLInputElement;
-  kilometerFeld: HTMLDivElement;
-  betragFeld: HTMLDivElement;
-  vorschau: HTMLParagraphElement;
-  titel: HTMLHeadingElement;
-  speichern: HTMLButtonElement;
-  abbrechen: HTMLButtonElement;
-  meldung: HTMLParagraphElement;
-}
+/**
+ * @typedef {Object} Felder
+ * @property {HTMLInputElement} datum
+ * @property {HTMLSelectElement} kategorie
+ * @property {HTMLInputElement} zweck
+ * @property {HTMLInputElement} kilometer
+ * @property {HTMLInputElement} betrag
+ * @property {HTMLDivElement} kilometerFeld
+ * @property {HTMLDivElement} betragFeld
+ * @property {HTMLParagraphElement} vorschau
+ * @property {HTMLHeadingElement} titel
+ * @property {HTMLButtonElement} speichern
+ * @property {HTMLButtonElement} abbrechen
+ * @property {HTMLParagraphElement} meldung
+ */
 
-interface Zustand {
-  felder: Felder;
-  antragId: number;
-  grenzen: { von: string; bis: string };
-  pauschale: number;
-  bearbeitet: Position | null; // null heisst: neue Position
-}
+/**
+ * @typedef {Object} Zustand
+ * @property {Felder} felder
+ * @property {number} antragId
+ * @property {{ von: string; bis: string }} grenzen
+ * @property {number} pauschale
+ * @property {Position | null} bearbeitet null heisst: neue Position
+ */
 
-/** Ergebnis: die Karte mit dem Formular und eine Funktion, die eine Position zum Bearbeiten lädt. */
-export interface PositionFormular {
-  karte: HTMLElement;
-  bearbeiten: (position: Position) => void;
-}
+/**
+ * Ergebnis: die Karte mit dem Formular und eine Funktion, die eine Position zum Bearbeiten lädt.
+ * @typedef {Object} PositionFormular
+ * @property {HTMLElement} karte
+ * @property {(position: Position) => void} bearbeiten
+ */
 
-function kategorieAuswahl(): HTMLSelectElement {
+function kategorieAuswahl() {
   const optionen = ALLE_KATEGORIEN.map((k) => ({
     wert: k,
     text: KATEGORIE_TEXT[k],
@@ -69,7 +64,7 @@ function kategorieAuswahl(): HTMLSelectElement {
   return auswahl('f-kategorie', optionen);
 }
 
-function felderErstellen(z: Omit<Zustand, 'felder' | 'bearbeitet'>): Felder {
+function felderErstellen(z) {
   const kilometer = eingabe('f-kilometer', 'number', {
     min: '0.1',
     step: '0.1',
@@ -108,7 +103,7 @@ function felderErstellen(z: Omit<Zustand, 'felder' | 'bearbeitet'>): Felder {
 }
 
 /** MA-2: Bei FAHRT zählen die Kilometer (Vorschau des Betrags), sonst der Betrag. */
-function umschalten(z: Zustand): void {
+function umschalten(z) {
   const f = z.felder;
   const fahrt = f.kategorie.value === KATEGORIE.FAHRT;
   f.kilometerFeld.hidden = !fahrt;
@@ -121,7 +116,7 @@ function umschalten(z: Zustand): void {
 }
 
 /** Formular leeren (neue Position) oder mit einer bestehenden Position füllen. */
-function fuellen(z: Zustand, position: Position | null): void {
+function fuellen(z, position) {
   const f = z.felder;
   const heute = heuteIso();
   const imMonat = heute >= z.grenzen.von && heute <= z.grenzen.bis;
@@ -145,9 +140,9 @@ function fuellen(z: Zustand, position: Position | null): void {
   umschalten(z);
 }
 
-function pruefungen(z: Zustand): FeldPruefung[] {
+function pruefungen(z) {
   const f = z.felder;
-  const liste: FeldPruefung[] = [
+  const liste = [
     [f.datum, [datumZwischen(z.grenzen.von, z.grenzen.bis)]],
     [f.zweck, [pflicht('Zweck'), minLaenge(3, 'Zweck')]],
   ];
@@ -159,10 +154,10 @@ function pruefungen(z: Zustand): FeldPruefung[] {
   return liste;
 }
 
-function eingabeDaten(f: Felder): PositionEingabe {
-  const daten: PositionEingabe = {
+function eingabeDaten(f) {
+  const daten = {
     datum: f.datum.value,
-    kategorie: f.kategorie.value as Kategorie,
+    kategorie: f.kategorie.value,
     zweck: f.zweck.value.trim(),
   };
   if (daten.kategorie === KATEGORIE.FAHRT)
@@ -171,7 +166,7 @@ function eingabeDaten(f: Felder): PositionEingabe {
   return daten;
 }
 
-async function speichern(z: Zustand): Promise<void> {
+async function speichern(z) {
   const f = z.felder;
   if (!pruefeFelder(pruefungen(z))) return;
   f.speichern.disabled = true; // gegen doppeltes Absenden
@@ -184,7 +179,7 @@ async function speichern(z: Zustand): Promise<void> {
     );
     await neuLaden();
   } catch (fehler) {
-    const zuordnung: [RegExp, HTMLInputElement][] = [
+    const zuordnung = [
       [/Datum/, f.datum],
       [/Kilometer/, f.kilometer],
       [/Betrag/, f.betrag],
@@ -197,7 +192,7 @@ async function speichern(z: Zustand): Promise<void> {
 }
 
 /** Formular mit allen Feldern und den Ereignissen (Absenden, Kategorie, Abbrechen). */
-function formularBauen(z: Zustand): HTMLFormElement {
+function formularBauen(z) {
   const f = z.felder;
   const formular = el(
     'form',
@@ -222,23 +217,20 @@ function formularBauen(z: Zustand): HTMLFormElement {
 }
 
 /** Baut das Formular für den Antrag; `pauschale` ist die Kilometerpauschale in CHF. */
-export function positionFormular(
-  antrag: AntragDetail,
-  pauschale: number,
-): PositionFormular {
+export function positionFormular(antrag, pauschale) {
   const basis = {
     antragId: antrag.id,
     grenzen: monatsGrenzen(antrag.jahr, antrag.monat),
     pauschale,
   };
-  const z: Zustand = {
+  const z = {
     ...basis,
     felder: felderErstellen(basis),
     bearbeitet: null,
   };
   const formular = formularBauen(z);
   fuellen(z, null);
-  const bearbeiten = (position: Position) => {
+  const bearbeiten = (position) => {
     fuellen(z, position);
     formular.scrollIntoView({ behavior: 'smooth' });
     z.felder.zweck.focus();

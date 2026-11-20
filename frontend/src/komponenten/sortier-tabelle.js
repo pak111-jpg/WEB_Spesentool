@@ -3,40 +3,45 @@
  * Ein zweiter Klick auf dieselbe Spalte kehrt die Richtung um. Die aktuelle Sortierung
  * steht im Attribut aria-sort, damit Screenreader sie ansagen; das CSS zeigt einen Pfeil.
  */
-import { el, knopf, spaltenBeschriften, type Kind } from '../dom';
-import { sortieren, type Richtung, type SortWert } from '../liste';
+import { el, knopf, spaltenBeschriften } from '../dom.js';
+import { sortieren } from '../liste.js';
 
-/** Beschreibung einer Spalte: Titel, Zelleninhalt und (optional) wonach sortiert wird. */
-export interface Spalte<T> {
-  titel: string;
-  inhalt: (eintrag: T) => Kind;
-  sortWert?: SortWert<T>;
-  klasse?: string;
-}
+/**
+ * Beschreibung einer Spalte: Titel, Zelleninhalt und (optional) wonach sortiert wird.
+ * @template T
+ * @typedef {Object} Spalte
+ * @property {string} titel
+ * @property {(eintrag: T) => Kind} inhalt
+ * @property {SortWert<T>} [sortWert]
+ * @property {string} [klasse]
+ */
 
-/** Nach welcher Spalte (Index) in welche Richtung sortiert ist. */
-export interface Sortierung {
-  spalte: number;
-  richtung: Richtung;
-}
+/**
+ * Nach welcher Spalte (Index) in welche Richtung sortiert ist.
+ * @typedef {Object} Sortierung
+ * @property {number} spalte
+ * @property {Richtung} richtung
+ */
 
-interface Zustand<T> {
-  spalten: Spalte<T>[];
-  eintraege: T[];
-  sortierung: Sortierung;
-  tbody: HTMLTableSectionElement;
-  kopf: HTMLTableCellElement[];
-  zeilenKlasse: (eintrag: T) => string;
-}
+/**
+ * @template T
+ * @typedef {Object} Zustand
+ * @property {Spalte<T>[]} spalten
+ * @property {T[]} eintraege
+ * @property {Sortierung} sortierung
+ * @property {HTMLTableSectionElement} tbody
+ * @property {HTMLTableCellElement[]} kopf
+ * @property {(eintrag: T) => string} zeilenKlasse
+ */
 
 /** Baut die sortierbare Tabelle in einem Rahmen, der bei schmalen Bildschirmen scrollt. */
-export function sortierbareTabelle<T>(
-  spalten: Spalte<T>[],
-  eintraege: T[],
-  start: Sortierung,
-  zeilenKlasse: (eintrag: T) => string = () => '',
-): HTMLDivElement {
-  const zustand: Zustand<T> = {
+export function sortierbareTabelle(
+  spalten,
+  eintraege,
+  start,
+  zeilenKlasse = () => '',
+) {
+  const zustand = {
     spalten,
     eintraege,
     sortierung: start,
@@ -54,10 +59,7 @@ export function sortierbareTabelle<T>(
   );
 }
 
-function kopfzelle<T>(
-  zustand: Zustand<T>,
-  index: number,
-): HTMLTableCellElement {
+function kopfzelle(zustand, index) {
   const spalte = zustand.spalten[index];
   if (!spalte.sortWert) return el('th', { scope: 'col' }, spalte.titel);
   const sortierKnopf = knopf(spalte.titel, 'sortier-knopf', () => {
@@ -73,7 +75,7 @@ function kopfzelle<T>(
   );
 }
 
-function zeichnen<T>(zustand: Zustand<T>): void {
+function zeichnen(zustand) {
   const { spalten, sortierung } = zustand;
   const sortWert = spalten[sortierung.spalte]?.sortWert;
   const sortiert = sortWert
@@ -86,7 +88,7 @@ function zeichnen<T>(zustand: Zustand<T>): void {
   });
 }
 
-function zeile<T>(zustand: Zustand<T>, eintrag: T): HTMLTableRowElement {
+function zeile(zustand, eintrag) {
   const zellen = zustand.spalten.map((spalte) =>
     el('td', { className: spalte.klasse ?? '' }, spalte.inhalt(eintrag)),
   );

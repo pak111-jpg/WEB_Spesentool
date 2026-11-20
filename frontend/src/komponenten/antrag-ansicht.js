@@ -3,26 +3,19 @@
  * Alle drei Rollen sehen denselben Kopf, dieselbe Positionstabelle und denselben Verlauf;
  * nur die Aktionen daneben unterscheiden sich (werden von der Seite übergeben).
  */
-import { el, statusMarke, tabelle, zelle } from '../dom';
-import { chf, datumCH, monatName, zeitpunktCH } from '../format';
-import { KATEGORIE_TEXT, ROLLE_TEXT, STATUS_TEXT } from '../texte';
-import {
-  STATUS,
-  type AntragDetail,
-  type Position,
-  type PositionFehler,
-  type StatusAenderung,
-} from '../typen';
-import { belegKnopf } from './beleg-dialog';
+import { el, statusMarke, tabelle, zelle } from '../dom.js';
+import { chf, datumCH, monatName, zeitpunktCH } from '../format.js';
+import { KATEGORIE_TEXT, ROLLE_TEXT, STATUS_TEXT } from '../texte.js';
+import { STATUS } from '../typen.js';
+import { belegKnopf } from './beleg-dialog.js';
 
-/** Zusätzliche Knöpfe pro Position, die eine Seite anhängen kann (Bearbeiten, Löschen, Upload). */
-export type Aktionen = (position: Position) => Node[];
+/**
+ * Zusätzliche Knöpfe pro Position, die eine Seite anhängen kann (Bearbeiten, Löschen, Upload).
+ * @typedef {(position: Position) => Node[]} Aktionen
+ */
 
-function fakten(
-  antrag: AntragDetail,
-  personZeigen: boolean,
-): [string, string][] {
-  const liste: [string, string][] = [];
+function fakten(antrag, personZeigen) {
+  const liste = [];
   if (personZeigen) {
     const { name, personalnummer, kostenstelle } = antrag.mitarbeitende;
     liste.push(['Person', `${name} (${personalnummer})`]);
@@ -42,10 +35,7 @@ function fakten(
 }
 
 /** Kopf mit Monat, Status, Total, Zeitstempeln und der Begründung eines Entscheids. */
-export function antragKopf(
-  antrag: AntragDetail,
-  personZeigen: boolean,
-): HTMLElement {
+export function antragKopf(antrag, personZeigen) {
   const liste = el('dl', { className: 'fakten' });
   for (const [begriff, wert] of fakten(antrag, personZeigen)) {
     liste.append(el('dt', {}, begriff), el('dd', {}, wert));
@@ -72,12 +62,7 @@ export function antragKopf(
   );
 }
 
-function positionsZeile(
-  position: Position,
-  meldung: HTMLElement,
-  fehler: string[],
-  aktionen?: Aktionen,
-): HTMLTableRowElement {
+function positionsZeile(position, meldung, fehler, aktionen) {
   const zeile = el(
     'tr',
     { className: fehler.length > 0 ? 'problem' : '' },
@@ -114,11 +99,11 @@ function positionsZeile(
  * `aktionen` liefert die Knöpfe für die letzte Spalte; ohne `aktionen` gibt es keine Spalte.
  */
 export function positionenTabelle(
-  positionen: Position[],
-  meldung: HTMLElement,
-  aktionen?: Aktionen,
-  probleme: PositionFehler[] = [],
-): HTMLElement {
+  positionen,
+  meldung,
+  aktionen,
+  probleme = [],
+) {
   if (positionen.length === 0) {
     return el(
       'p',
@@ -143,7 +128,7 @@ export function positionenTabelle(
   return tabelle(spalten, zeilen);
 }
 
-function verlaufEintrag(eintrag: StatusAenderung): HTMLLIElement {
+function verlaufEintrag(eintrag) {
   const wechsel = eintrag.vonStatus
     ? `${STATUS_TEXT[eintrag.vonStatus]} → ${STATUS_TEXT[eintrag.nachStatus]}`
     : `Angelegt (${STATUS_TEXT[eintrag.nachStatus]})`;
@@ -163,7 +148,7 @@ function verlaufEintrag(eintrag: StatusAenderung): HTMLLIElement {
 }
 
 /** U2.4: Verlauf aller Statusänderungen mit Zeitpunkt, Person und Rolle (älteste zuerst). */
-export function verlaufKarte(antrag: AntragDetail): HTMLElement {
+export function verlaufKarte(antrag) {
   const inhalt =
     antrag.verlauf.length === 0
       ? el('p', { className: 'leer' }, 'Noch keine Einträge im Verlauf.')

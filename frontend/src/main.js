@@ -3,15 +3,15 @@
  * Muster: Regulärer Ausdruck auf den Pfad nach "#", die erlaubte Rolle und die Seitenfunktion.
  * Gruppen in Klammern (\d+) landen als Parameter bei der Seite.
  */
-import { route, routerStarten } from './router';
-import { antraegeListeSeite } from './seiten/antraege-liste';
-import { antragDetailSeite } from './seiten/antrag-detail';
-import { freigabeDetailSeite } from './seiten/freigabe-detail';
-import { freigabeListeSeite } from './seiten/freigabe-liste';
-import { loginSeite } from './seiten/login';
-import { lohnbuchhaltungDetailSeite } from './seiten/lohnbuchhaltung-detail';
-import { lohnbuchhaltungListeSeite } from './seiten/lohnbuchhaltung-liste';
-import { ROLLE } from './typen';
+import { route, routerStarten } from './router.js';
+import { antraegeListeSeite } from './seiten/antraege-liste.js';
+import { antragDetailSeite } from './seiten/antrag-detail.js';
+import { freigabeDetailSeite } from './seiten/freigabe-detail.js';
+import { freigabeListeSeite } from './seiten/freigabe-liste.js';
+import { loginSeite } from './seiten/login.js';
+import { lohnbuchhaltungDetailSeite } from './seiten/lohnbuchhaltung-detail.js';
+import { lohnbuchhaltungListeSeite } from './seiten/lohnbuchhaltung-liste.js';
+import { ROLLE } from './typen.js';
 
 route(/^\/login$/, null, loginSeite);
 

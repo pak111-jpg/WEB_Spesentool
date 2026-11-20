@@ -1,20 +1,18 @@
 /**
  * Sortieren und Filtern von Listen im Browser. Reine Funktionen ohne DOM,
  * damit dieselbe Logik in allen Listen gilt (U3.3).
+ * Auf- oder absteigend.
+ * @typedef {'auf' | 'ab'} Richtung
  */
 
-/** Auf- oder absteigend. */
-export type Richtung = 'auf' | 'ab';
-
-/** Sortierwert eines Eintrags: Text oder Zahl. */
-export type SortWert<T> = (eintrag: T) => string | number;
+/**
+ * Sortierwert eines Eintrags: Text oder Zahl.
+ * @template T
+ * @typedef {(eintrag: T) => string | number} SortWert
+ */
 
 /** Neue, sortierte Kopie der Liste (die Originalliste bleibt unverändert). */
-export function sortieren<T>(
-  eintraege: T[],
-  wert: SortWert<T>,
-  richtung: Richtung,
-): T[] {
+export function sortieren(eintraege, wert, richtung) {
   const faktor = richtung === 'auf' ? 1 : -1;
   return [...eintraege].sort((a, b) => {
     const wa = wert(a);
@@ -27,18 +25,18 @@ export function sortieren<T>(
   });
 }
 
-/** Ein Filter: true, wenn der Eintrag sichtbar bleiben soll. */
-export type Filter<T> = (eintrag: T) => boolean;
+/**
+ * Ein Filter: true, wenn der Eintrag sichtbar bleiben soll.
+ * @template T
+ * @typedef {(eintrag: T) => boolean} Filter
+ */
 
 /** Behält nur Einträge, die alle Filter erfüllen (Filter sind kombiniert). */
-export function filtern<T>(eintraege: T[], filter: Filter<T>[]): T[] {
+export function filtern(eintraege, filter) {
   return eintraege.filter((eintrag) => filter.every((f) => f(eintrag)));
 }
 
 /** Filter, der nur greift, wenn ein Wert gewählt ist ('' = alle). */
-export function gleichWennGewaehlt<T>(
-  gewaehlt: string,
-  wert: (eintrag: T) => string | number,
-): Filter<T> {
+export function gleichWennGewaehlt(gewaehlt, wert) {
   return (eintrag) => gewaehlt === '' || String(wert(eintrag)) === gewaehlt;
 }
