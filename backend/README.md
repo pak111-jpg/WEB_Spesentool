@@ -95,3 +95,11 @@ src/lohnbuchhaltung         Export, Auszahlung, Auswertung
 | `npm run db:studio`   | Prisma Studio (DB im Browser)                  |
 | `npm run prisma:generate` | Prisma-Client nach Schemaänderung neu erzeugen |
 | `npm run lint` / `format` | ESLint / Prettier                          |
+
+
+## KI
+Als KI Model wurde claude opus genutzt, planung, patterns und weiteres wurde im vor hinein, geprüft validiert und aufgegeben. 
+
+
+
+
