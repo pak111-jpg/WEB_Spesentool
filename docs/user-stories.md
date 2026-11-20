@@ -1,7 +1,7 @@
 # Spesenportal – User Stories
 
 **Fach:** DTR II / WEB I · **Projekt:** Digitales Spesenportal
-**Gruppe:** Parwar Habasch, Felix Stalder, Pakierthan Pakeerthan
+**Gruppe:** Parwar Habasch, Felix Stalder, Pakierthan Pakeerathan
 
 Verbindliche Fassung für WEB I. Grundlage ist unsere DTR-II-Abgabe (`dtr2/Spesenportal-User-Stories.pdf`).
 Was wir für WEB I ergänzt haben, steht am Schluss unter [Änderungen gegenüber DTR II](#änderungen-gegenüber-dtr-ii).

@@ -3,7 +3,7 @@
 Digitales Spesenportal – Projekt «Digitalisierter Geschäftsprozess» in WEB I und DTR II (gibb HF).
 
 **Gruppenname:** Team Spesenportal
-**Mitglieder:** Parwar Habasch, Felix Stalder, Pakierthan Pakeerthan
+**Mitglieder:** Parwar Habasch, Felix Stalder, Pakierthan Pakeerathan
 **Repository:** https://github.com/pak111-jpg/WEB_Spesentool
 
 ## Projekt
@@ -255,13 +255,11 @@ Die Tests brauchen Node 24.9 oder neuer; der End-to-End-Test braucht die laufend
 
 ## Aufgabenverteilung
 
-⚠️ *Von der Gruppe vor der Abgabe zu prüfen und zu vervollständigen.* Vorschlag auf Grundlage der Git-Historie:
-
 | Person | Teile |
 | ------ | ----- |
-| Pakierthan Pakeerthan | Spezifikation DTR II (User Stories, UML-Diagramme), Überarbeitung für das Bewertungsraster (Statusverlauf, Validierung, Tests, Dokumentation) |
-| Parwar Habasch | Backend: REST-API mit NestJS, Datenmodell mit Prisma, Anmeldung, Swagger |
-| Felix Stalder | Frontend: Oberfläche mit Vite und TypeScript, Router, API-Client, Seiten der drei Rollen |
+| Parwar Habasch | **Backend:** REST-API mit NestJS, Datenmodell und Migrationen (Prisma, MariaDB), Anmeldung mit JWT und Rollen, Statusregeln und Verlauf, Export und Auswertung, Demo-Daten, automatisierte Tests |
+| Felix Stalder | **Frontend:** Oberfläche mit HTML, CSS und TypeScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
+| Pakierthan Pakeerathan | **Frontend:** Oberfläche mit HTML, CSS und TypeScript, Hash-Router, API-Client, Seiten der drei Rollen, Validierung beim Feld, Sortierung und Filter, responsives Layout |
 
 Alle drei kennen den ganzen Code und können jeden Teil erklären (Erklärbarkeitsvorbehalt).
 

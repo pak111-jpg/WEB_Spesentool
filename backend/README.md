@@ -1,7 +1,7 @@
 # Spesenportal – Backend
 
 REST-API des digitalen Spesenportals (Fach DTR).
-Gruppe: Parwar Habasch, Felix Stalder, Pakierthan Pakeerthan
+Gruppe: Parwar Habasch, Felix Stalder, Pakierthan Pakeerathan
 
 **Stack:** NestJS 12 · Prisma 7 · TypeScript 6 · MariaDB 11 (Docker) · JWT-Auth · Swagger/OpenAPI
 
