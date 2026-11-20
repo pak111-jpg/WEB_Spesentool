@@ -1,0 +1,37 @@
+Kernprozess nur mit Tastatur (automatisiert mit Playwright, keine Mausklicks)
+
+Tab → INPUT «f-email»
+Tab → INPUT «f-passwort»
+Enter
+angemeldet als eva.brunner@firma.ch
+Tab → A «Jetzt korrigieren»
+Enter
+Tab → BUTTON «Bearbeiten»
+Enter
+Enter
+✔ Bestätigung: Änderung gespeichert
+Tab → BUTTON «Abrechnung einreichen»
+Enter
+✔ Bestätigung: Abrechnung eingereicht
+Tab → BUTTON «Abmelden»
+Enter
+Tab → INPUT «f-email»
+Tab → INPUT «f-passwort»
+Enter
+angemeldet als sandra.weber@firma.ch
+Tab → A «Prüfen»
+Enter
+Tab → BUTTON «Genehmigen»
+Enter
+✔ Bestätigung: genehmigt
+Tab → BUTTON «Abmelden»
+Enter
+Tab → INPUT «f-email»
+Tab → INPUT «f-passwort»
+Enter
+angemeldet als lena.schmid@firma.ch
+Tab → A «Ansehen»
+Enter
+Tab → BUTTON «Als ausbezahlt markieren»
+Enter
+✔ Bestätigung: als ausbezahlt markiert
